@@ -26,7 +26,8 @@
   --done:#5EA2EE; --done-soft:#1D3450; --now:#3A3420; --minus:#F08A8A; --plus:#7FB2F0;
   --sat:#86A9E6; --sun:#EB8C8C;}}
 *,*::before,*::after{box-sizing:inherit}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+button,select,.slot{touch-action:manipulation}
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
   font-size:15px;line-height:1.45}
@@ -46,6 +47,10 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .sum > *{padding:3px 0}
 .sum .lb{font-weight:700}
 .sum .done-row{color:var(--done);font-weight:700}
+.sum .urow{grid-column:1 / -1;display:flex;align-items:center;gap:6px}
+.sum .urow .lb{margin-right:2px;white-space:nowrap}
+.sum .chants{margin-left:auto;text-align:right;font-weight:700;font-size:13px;color:var(--done);white-space:nowrap}
+.sum .chants small{font-weight:500;font-size:12px;color:var(--sub)}
 .sum .gv{font-size:17px;font-weight:700;text-align:center}
 .sum select{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--paper);
   border:1px solid var(--rule);border-radius:6px;padding:2px 4px;text-align:center;text-align-last:center;
@@ -118,9 +123,8 @@ body{margin:0;background:var(--paper);color:var(--ink);
         <span class="done-row">時間</span>
         <span class="min done-row" id="doneMin"></span>
         <span class="diff" id="diff"></span>
-        <span class="lb">時間単位</span>
-        <select id="unit" aria-label="時間単位"></select>
-        <span>分</span>
+        <div class="urow"><span class="lb">時間単位</span><select id="unit" aria-label="時間単位"></select><span>分</span>
+        <span class="chants" id="chants"></span></div>
       </div>
       <div class="bar"><i id="barFill"></i></div>
     </div>
@@ -141,7 +145,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
 </div>
 
 <script>
-const CFG = {"dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]};
+const CFG = {"perHour": 3400, "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]};
 const KEY = "chant-time-v1";
 const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const PLAN_ITEMS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"],["hol","Hol"]];
@@ -238,6 +242,9 @@ function render(){
   const df = document.getElementById("diff");
   df.textContent = diff > 0 ? "+" + diff : String(diff);
   df.className = "diff " + (diff < 0 ? "minus" : diff > 0 ? "plus" : "zero");
+  // 実施時間 × 3,400回/1時間
+  document.getElementById("chants").innerHTML =
+    `<small>${cur === todayISO() ? "本日" : "この日"}：</small>${Math.round(doneMin/60*CFG.perHour).toLocaleString("ja-JP")} chants ${(doneMin/60).toFixed(1).replace(/\.0$/,"")}h`;
   document.getElementById("barFill").style.width = Math.min(100, goalMin ? doneMin/goalMin*100 : 0) + "%";
 
   // target の個数：目標時間 ÷ 時間単位
