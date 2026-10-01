@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="theme-color" content="#EEF1F4" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#141A22" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="chant time">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<title>chant time</title>
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --paper:#EEF1F4; --sheet:#FFFFFF; --ink:#1D2A3A; --sub:#5F6B7A; --rule:#D5DBE2;
+  --done:#1F6FC5; --done-soft:#E3EEFB; --now:#FFF6DA; --minus:#C62828; --plus:#1F6FC5;
+  --sat:#2D5EA8; --sun:#B03A3A;
+}
+@media (prefers-color-scheme:dark){:root{
+  --paper:#141A22; --sheet:#1C242F; --ink:#E6EBF1; --sub:#9AA6B4; --rule:#2C3643;
+  --done:#5EA2EE; --done-soft:#1D3450; --now:#3A3420; --minus:#F08A8A; --plus:#7FB2F0;
+  --sat:#86A9E6; --sun:#EB8C8C;}}
+*,*::before,*::after{box-sizing:inherit}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
+  font-size:15px;line-height:1.45}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:520px;margin:0 auto;padding:0 12px 90px}
+/* 上部（固定） */
+.head{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:8px 0 8px}
+.card{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.date{display:flex;align-items:center;justify-content:space-between;padding:6px 6px;border-bottom:1px solid var(--rule)}
+.date h1{margin:0;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:600;font-size:22px;
+  letter-spacing:.02em;text-align:center;flex:1}
+.date h1 small{font-size:16px;margin-left:6px}
+.date .w5{color:var(--sat)} .date .w6{color:var(--sun)}
+.nav{border:0;background:transparent;color:var(--ink);font-size:20px;width:44px;height:40px;border-radius:8px}
+.nav:active{background:var(--paper)}
+.sum{display:grid;grid-template-columns:4.6em 3.4em 2.4em 1fr auto;align-items:center;gap:0 6px;padding:6px 12px}
+.sum > *{padding:3px 0}
+.sum .lb{font-weight:700}
+.sum .done-row{color:var(--done);font-weight:700}
+.sum .gv{font-size:17px;font-weight:700;text-align:center}
+.sum select{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--paper);
+  border:1px solid var(--rule);border-radius:6px;padding:2px 4px;text-align:center;text-align-last:center;
+  -webkit-appearance:none;appearance:none;width:3.4em}
+.sum .val{font-size:17px;font-weight:700;text-align:center}
+.sum .min{text-align:center;color:var(--sub)}
+.sum .min.done-row{color:var(--done)}
+.sum .diff{font-weight:700;min-width:3.2em;text-align:right}
+.diff.minus{color:var(--minus)} .diff.plus{color:var(--plus)} .diff.zero{color:var(--sub)}
+.bar{height:6px;background:var(--rule)}
+.bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
+/* 時間の一覧 */
+.list{list-style:none;margin:0;padding:0}
+.hdr{display:grid;grid-template-columns:1fr 1.2em 1fr 76px 64px;font-size:12px;color:var(--sub);padding:6px 12px 4px;text-align:center;align-items:end}
+.hdr b{font-weight:700;color:var(--ink)} .hdr .ok{color:#A07800} .hdr .over{color:var(--minus)}
+.slot{display:grid;grid-template-columns:1fr 1.2em 1fr 76px 64px;align-items:stretch;text-align:center;
+  width:100%;min-height:44px;padding:0 12px;border-top:1px solid var(--rule);background:var(--sheet);font-size:16px}
+.slot > span{align-self:center}
+.cell{display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;margin:0;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;font:inherit}
+.cell:active{background:var(--paper)}
+.slot.now{background:var(--now)}
+
+.slot .t{color:var(--sub)}
+.dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--sub);opacity:.6}
+.cell.on .dot{border:0;opacity:1}
+.cell.r.on .dot{background:radial-gradient(circle at 35% 30%,#8CC3FF,var(--done) 60%,#0F4C99)}
+.cell.t.on .dot{background:radial-gradient(circle at 35% 30%,#FFF3A6,#F2C300 60%,#B88A00)}
+.cell.part .dot{opacity:1;border-style:dashed}
+.cell.r.part .dot{border-color:var(--done)} .cell.t.part .dot{border-color:#D9A800}
+.cell:focus-visible{outline:2px solid var(--done);outline-offset:-2px}
+/* Target time（曜日ごとの目標）*/
+.plan-card{padding:8px 10px;margin-top:8px}
+.plan-h{font-size:12px;color:var(--sub)}
+.plan{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-top:2px}
+.plan label{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--sub)}
+.plan select{font:inherit;font-size:16px;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;
+  padding:4px 0;width:100%;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
+.plan label.today{color:var(--done);font-weight:700}
+.plan label.today select{border-color:var(--done)}
+.foot{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;gap:8px;justify-content:center;
+  padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--rule)}
+.foot button{font:inherit;font-size:14px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:18px;padding:6px 14px}
+.foot button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+.note{font-size:12px;color:var(--sub);text-align:center;margin:12px 0 0}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card plan-card">
+    <div class="plan-h">Target time</div>
+    <div class="plan" id="plan"></div>
+  </div>
+  <div class="head">
+    <div class="card">
+      <div class="date">
+        <button class="nav" id="prev" aria-label="前の日">◀</button>
+        <h1 class="num" id="dateTitle"></h1>
+        <button class="nav" id="next" aria-label="次の日">▶</button>
+      </div>
+      <div class="sum num">
+        <span class="lb">目標</span>
+        <span class="gv" id="goalH"></span>
+        <span>時間</span>
+        <span class="min" id="goalMin"></span>
+        <span></span>
+        <span class="lb done-row">達成</span>
+        <span class="val done-row" id="doneH"></span>
+        <span class="done-row">時間</span>
+        <span class="min done-row" id="doneMin"></span>
+        <span class="diff" id="diff"></span>
+        <span class="lb">時間単位</span>
+        <select id="unit" aria-label="時間単位"></select>
+        <span>分</span>
+      </div>
+      <div class="bar"><i id="barFill"></i></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="hdr num"><span>start</span><span></span><span>end</span><span id="tHdr">target</span><span>real</span></div>
+    <div class="list" id="list"></div>
+  </div>
+  <p class="note">target をタップすると 🟡（予定）、real をタップすると 🔵（実施）になり、もう一度タップで ○ に戻ります。記録はこのスマホの中に保存されます。</p>
+</div>
+
+<div class="foot">
+  <button class="main" id="todayBtn">今日</button>
+  <button id="exportBtn">バックアップ</button>
+  <button id="importBtn">復元</button>
+  <input id="importFile" type="file" accept="application/json,.json" hidden>
+</div>
+
+<script>
+const CFG = {"dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]};
+const KEY = "chant-time-v1";
+const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+const PLAN_ITEMS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"],["hol","Hol"]];
+const B = 5;   // 記録は5分刻みで保存（単位を変えても記録が残るように）
+
+// ---- 保存 ----
+// days: { "2026-10-01": { t:[5分ブロックの開始分...], r:[...] } }
+let state = { days:{}, plan:{...CFG.plan}, unit: CFG.unit };
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = { ...state, ...s, plan:{...CFG.plan, ...(s.plan||{})} }; } catch(e) {}
+function migrate(st){              // 旧版（20分ごとの on）からの変換
+  Object.entries(st.days || {}).forEach(([k,d]) => {
+    if (d && Array.isArray(d.on)) {
+      const r = []; d.on.forEach(m => { for (let x = m; x < m + 20; x += B) r.push(x); });
+      st.days[k] = { t: d.t || [], r };
+    }
+  });
+  delete st.goal; return st;
+}
+state = migrate(state);
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert("保存できませんでした。プライベートブラウズを解除してください。"); } }
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+
+// ---- 日付 ----
+const pad = n => String(n).padStart(2,"0");
+const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
+const parse = s => new Date(Number(s.slice(0,4)), Number(s.slice(5,7))-1, Number(s.slice(8,10)));
+const todayISO = () => iso(new Date());
+let cur = todayISO();
+const day = () => state.days[cur] || { t:[], r:[] };
+const hm = m => (m % 1440 === 0 && m > 0 ? 0 : Math.floor(m/60)) + ":" + pad(m % 60);
+
+// ---- 日本の祝日（自動計算）----
+const holCache = {};
+function holidaysOf(y){
+  if (holCache[y]) return holCache[y];
+  const h = {};
+  const add = (m,d) => { h[y+"-"+pad(m)+"-"+pad(d)] = 1; };
+  const nthMon = (m,n) => { const f = new Date(y,m-1,1).getDay(); return 1 + ((8-f)%7) + (n-1)*7; };
+  add(1,1); add(1,nthMon(1,2)); add(2,11); add(2,23);
+  add(3,Math.floor(20.8431+0.242194*(y-1980)-Math.floor((y-1980)/4)));
+  add(4,29); add(5,3); add(5,4); add(5,5); add(7,nthMon(7,3)); add(8,11); add(9,nthMon(9,3));
+  add(9,Math.floor(23.2488+0.242194*(y-1980)-Math.floor((y-1980)/4)));
+  add(10,nthMon(10,2)); add(11,3); add(11,23);
+  Object.keys(h).forEach(k => { const d = parse(k); d.setDate(d.getDate()+2);
+    if (h[iso(d)]) { const mid = parse(k); mid.setDate(mid.getDate()+1);
+      if (!h[iso(mid)] && mid.getDay() !== 0) h[iso(mid)] = 1; } });
+  Object.keys(h).sort().forEach(k => { const d = parse(k); if (d.getDay() === 0) {
+    do { d.setDate(d.getDate()+1); } while (h[iso(d)]); h[iso(d)] = 1; } });
+  return holCache[y] = h;
+}
+const isHoliday = s => !!holidaysOf(Number(s.slice(0,4)))[s];
+const planKeyOf = s => isHoliday(s) ? "hol" : ["mon","tue","wed","thu","fri","sat","sun"][(parse(s).getDay()+6)%7];
+
+// ---- Target time（曜日ごと）----
+document.getElementById("plan").innerHTML = PLAN_ITEMS.map(([k,l]) =>
+  `<label data-k="${k}">${l}<select data-plan="${k}" aria-label="${l} の目標時間">${CFG.hours.map(h=>`<option value="${h}">${String(h).replace(/\.0$/,"")}h</option>`).join("")}</select></label>`).join("");
+document.querySelectorAll("select[data-plan]").forEach(sel => {
+  sel.value = String(state.plan[sel.dataset.plan]);
+  sel.addEventListener("change", () => { state.plan[sel.dataset.plan] = Number(sel.value); save(); render(); });
+});
+
+// ---- 時間単位 ----
+const unitSel = document.getElementById("unit");
+unitSel.innerHTML = CFG.units.map(u => `<option value="${u}">${u}</option>`).join("");
+unitSel.value = String(state.unit);
+unitSel.addEventListener("change", () => { state.unit = Number(unitSel.value); save(); buildList(); render(); });
+
+// ---- 時間割 ----
+let SLOTS = [];
+function buildList(){
+  const u = state.unit; SLOTS = [];
+  for (let m = CFG.dayStart; m < CFG.dayEnd; m += u) SLOTS.push(m);
+  document.getElementById("list").innerHTML = SLOTS.map(m =>
+    `<div class="slot num" data-m="${m}"><span>${hm(m)}</span><span class="t">~</span><span>${hm(Math.min(m+u, CFG.dayEnd))}</span>`+
+    `<button class="cell t" data-k="t" data-m="${m}" aria-label="${hm(m)} target"><span class="dot"></span></button>`+
+    `<button class="cell r" data-k="r" data-m="${m}" aria-label="${hm(m)} real"><span class="dot"></span></button></div>`).join("");
+}
+const blocksOf = m => { const a = []; for (let x = m; x < Math.min(m + state.unit, CFG.dayEnd); x += B) a.push(x); return a; };
+
+function render(){
+  const d = parse(cur), wd = (d.getDay()+6)%7, hol = isHoliday(cur);
+  document.getElementById("dateTitle").innerHTML =
+    `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}<small class="${hol||wd===6?"w6":wd===5?"w5":""}">${WD[wd]}${hol?" Hol":""}</small>`;
+  const pk = planKeyOf(cur);
+  document.querySelectorAll(".plan label").forEach(l => l.classList.toggle("today", l.dataset.k === pk));
+  const goalH = state.plan[pk], goalMin = Math.round(goalH * 60);
+  const dd = day(), T = new Set(dd.t), Rr = new Set(dd.r);
+  const doneMin = Rr.size * B;
+  const diff = doneMin - goalMin;
+  document.getElementById("goalH").textContent = goalH.toFixed(1);
+  document.getElementById("goalMin").textContent = "（" + goalMin + "）";
+  document.getElementById("doneH").textContent = (doneMin/60).toFixed(1);
+  document.getElementById("doneMin").textContent = "（" + doneMin + "）";
+  const df = document.getElementById("diff");
+  df.textContent = diff > 0 ? "+" + diff : String(diff);
+  df.className = "diff " + (diff < 0 ? "minus" : diff > 0 ? "plus" : "zero");
+  document.getElementById("barFill").style.width = Math.min(100, goalMin ? doneMin/goalMin*100 : 0) + "%";
+
+  // target の個数：目標時間 ÷ 時間単位
+  const need = Math.ceil(goalMin / state.unit);
+  let picked = 0;
+  const now = new Date(), nowM = now.getHours()*60 + now.getMinutes(), isToday = cur === todayISO();
+  document.querySelectorAll(".slot").forEach(row => {
+    const m = Number(row.dataset.m), bl = blocksOf(m);
+    [["t",T],["r",Rr]].forEach(([k,set]) => {
+      const c = row.querySelector(".cell."+k), n = bl.filter(x => set.has(x)).length;
+      c.classList.toggle("on", n === bl.length); c.classList.toggle("part", n > 0 && n < bl.length);
+      c.setAttribute("aria-pressed", n === bl.length);
+      if (k === "t" && n === bl.length) picked++;
+    });
+    row.classList.toggle("now", isToday && nowM >= m && nowM < m + state.unit);
+  });
+  const th = document.getElementById("tHdr");
+  th.innerHTML = `target:<b>${need}</b><br><span class="${picked===need?"ok":picked>need?"over":""}">${picked}/${need}</span>`;
+}
+
+// ---- 操作 ----
+document.getElementById("list").addEventListener("click", e => {
+  const c = e.target.closest(".cell"); if (!c) return;
+  const k = c.dataset.k, bl = blocksOf(Number(c.dataset.m));
+  const dd = day(), set = new Set(dd[k]);
+  const allOn = bl.every(x => set.has(x));
+  bl.forEach(x => allOn ? set.delete(x) : set.add(x));
+  state.days[cur] = { t: dd.t, r: dd.r, [k]: [...set].sort((a,b)=>a-b) };
+  save(); render();
+});
+function move(n){ const d = parse(cur); d.setDate(d.getDate()+n); cur = iso(d); render(); }
+document.getElementById("prev").addEventListener("click", () => move(-1));
+document.getElementById("next").addEventListener("click", () => move(1));
+function jumpNow(){
+  cur = todayISO(); render();
+  const el = document.querySelector(".slot.now") || document.querySelector(".slot");
+  const top = el.getBoundingClientRect().top + window.scrollY - document.querySelector(".head").offsetHeight - 60;
+  window.scrollTo({ top: Math.max(0, top) });
+}
+document.getElementById("todayBtn").addEventListener("click", jumpNow);
+document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
+setInterval(render, 60000);
+
+// ---- バックアップ／復元 ----
+document.getElementById("exportBtn").addEventListener("click", async () => {
+  const name = "chant_time_backup_" + todayISO() + ".json";
+  const file = new File([JSON.stringify(state)], name, {type:"application/json"});
+  if (navigator.canShare && navigator.canShare({files:[file]})) {
+    try { await navigator.share({files:[file], title:name}); return; } catch(e) { if (e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+});
+const fileIn = document.getElementById("importFile");
+document.getElementById("importBtn").addEventListener("click", () => fileIn.click());
+fileIn.addEventListener("change", async () => {
+  const f = fileIn.files[0]; if (!f) return;
+  try {
+    const s = JSON.parse(await f.text());
+    if (!s || typeof s.days !== "object") throw new Error();
+    if (!confirm("バックアップの内容で今の記録を置き換えます。よろしいですか？")) return;
+    state = migrate({ days: s.days, plan: {...CFG.plan, ...(s.plan||{})}, unit: s.unit || CFG.unit });
+    save(); unitSel.value = String(state.unit);
+    document.querySelectorAll("select[data-plan]").forEach(x => x.value = String(state.plan[x.dataset.plan]));
+    buildList(); render(); alert("復元しました。");
+  } catch(e) { alert("このファイルは読み込めません。chant time のバックアップ（.json）を選んでください。"); }
+  fileIn.value = "";
+});
+
+buildList();
+render();
+requestAnimationFrame(jumpNow);
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js");
+</script>
+</body>
+</html>
