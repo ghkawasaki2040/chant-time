@@ -58,7 +58,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .sum .val{font-size:17px;font-weight:700;text-align:center}
 .sum .min{text-align:center;color:var(--sub)}
 .sum .min.done-row{color:var(--done)}
-.sum .diff{font-weight:700;min-width:3.2em;text-align:right}
+.sum .diff{font-weight:700;min-width:3.2em;text-align:right;white-space:nowrap}
 .diff.minus{color:var(--minus)} .diff.plus{color:var(--plus)} .diff.zero{color:var(--sub)}
 .bar{height:6px;background:var(--rule)}
 .bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
@@ -141,11 +141,12 @@ body{margin:0;background:var(--paper);color:var(--ink);
   <button class="main" id="todayBtn">今日</button>
   <button id="exportBtn">バックアップ</button>
   <button id="importBtn">復元</button>
+  <button id="reloadBtn" aria-label="更新">⟳</button>
   <input id="importFile" type="file" accept="application/json,.json" hidden>
 </div>
 
 <script>
-const CFG = {"perHour": 3400, "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0]};
+const CFG = {"perHour": 3400, "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12]};
 const KEY = "chant-time-v1";
 const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const PLAN_ITEMS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"],["hol","Hol"]];
@@ -240,7 +241,7 @@ function render(){
   document.getElementById("doneH").textContent = (doneMin/60).toFixed(1);
   document.getElementById("doneMin").textContent = "（" + doneMin + "）";
   const df = document.getElementById("diff");
-  df.textContent = diff > 0 ? "+" + diff : String(diff);
+  df.textContent = diff < 0 ? "あと" + (-diff) + "分" : diff > 0 ? "+" + diff + "分" : "達成";
   df.className = "diff " + (diff < 0 ? "minus" : diff > 0 ? "plus" : "zero");
   // 実施時間 × 3,400回/1時間
   document.getElementById("chants").innerHTML =
@@ -285,7 +286,6 @@ function jumpNow(){
   window.scrollTo({ top: Math.max(0, top) });
 }
 document.getElementById("todayBtn").addEventListener("click", jumpNow);
-document.addEventListener("visibilitychange", () => { if (!document.hidden) render(); });
 setInterval(render, 60000);
 
 // ---- バックアップ／復元 ----
@@ -318,7 +318,25 @@ fileIn.addEventListener("change", async () => {
 buildList();
 render();
 requestAnimationFrame(jumpNow);
-if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js");
+// ---- オフライン対応と自動アップデート ----
+let swReg = null;
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  const hadController = !!navigator.serviceWorker.controller;
+  navigator.serviceWorker.register("sw.js").then(r => { swReg = r; }).catch(() => {});
+  let reloaded = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (hadController && !reloaded) { reloaded = true; location.reload(); }   // 新しい版に切り替わったら読み込み直す
+  });
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) return;
+  render();
+  if (swReg) swReg.update().catch(() => {});                                  // 新しい版がないか確認
+});
+document.getElementById("reloadBtn").addEventListener("click", async () => {
+  try { if (swReg) await swReg.update(); } catch(e) {}
+  location.reload();
+});
 </script>
 </body>
 </html>
