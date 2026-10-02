@@ -95,11 +95,34 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .foot{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
 .foot button{font:inherit;font-size:14px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:18px;padding:6px 14px}
 .foot button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+/* 初回のパスワード入力画面 */
+.gate{position:fixed;inset:0;z-index:100;background:var(--paper);overflow:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
+.gbox{max-width:480px;margin:0 auto;background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:16px}
+.gbox h2{font-size:18px;margin:0 0 8px}
+.gbox ul,.notice ul{margin:0;padding-left:1.2em;font-size:13px;line-height:1.6;color:var(--ink)}
+.gbox li,.notice li{margin:4px 0}
+.ghint{font-size:12px;color:var(--sub);margin:10px 0}
+.glab{display:block;font-size:13px;color:var(--sub);margin-top:10px}
+.glab input{display:block;width:100%;margin-top:4px;font:inherit;font-size:16px;color:var(--ink);background:var(--paper);
+  border:1px solid var(--rule);border-radius:8px;padding:8px 10px}
+#gBtn{display:block;width:100%;margin-top:12px;font:inherit;font-size:16px;font-weight:700;color:#fff;background:#1D2A3A;border:0;border-radius:10px;padding:10px}
+#gBtn:disabled{opacity:.4}
+.gerr{color:#C62828;font-size:13px;min-height:1.2em;margin:8px 0 0}
+body.locked{overflow:hidden}
+.notice{max-width:520px;margin:10px auto 0;font-size:12px;color:var(--sub)}
+.notice summary{cursor:pointer;text-align:center}
+.notice ul{color:var(--sub);font-size:12px;margin-top:6px}
 .note{font-size:12px;color:var(--sub);text-align:center;margin:12px 0 0}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
 </head>
 <body>
+<div id="gate" class="gate" hidden><div class="gbox">
+  <h2 id="gTitle"></h2><ul id="gList"></ul><p class="ghint" id="gHint"></p>
+  <label class="glab"><span id="gLabel"></span><input id="gPass" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+  <button id="gBtn"></button><p class="gerr" id="gErr" role="alert"></p>
+</div></div>
 <div class="wrap">
   <div class="card plan-card">
     <div class="plan-h">Target time</div>
@@ -142,11 +165,12 @@ body{margin:0;background:var(--paper);color:var(--ink);
     <div class="list" id="list"></div>
   </div>
   <p class="note">target をタップすると 🟡（予定）、real をタップすると 🔵（実施）になり、もう一度タップで ○ に戻ります。記録はこのスマホの中に保存されます。</p>
+  <details class="notice"><summary id="nSum"></summary><ul id="nList"></ul></details>
 </div>
 
 
 <script>
-const CFG = {"perHour": 3400, "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12]};
+const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12]};
 const KEY = "chant-time-v1";
 const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const PLAN_ITEMS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"],["hol","Hol"]];
@@ -178,6 +202,54 @@ const pad = n => String(n).padStart(2,"0");
 const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const parse = s => new Date(Number(s.slice(0,4)), Number(s.slice(5,7))-1, Number(s.slice(8,10)));
 const todayISO = () => iso(new Date());
+const GATE = {
+  title: "ご利用にあたって",
+  items: [
+    "このアプリはご招待した方専用です。URLやパスワードの共有はご遠慮ください。",
+    "本アプリは無料で提供しており、動作や計算結果の正確さを保証するものではありません。ご利用はご自身の判断と責任でお願いいたします。",
+    "記録はお使いのスマホの中にのみ保存され、外部に送信されることはありません。作成者が記録を見ることはできません。",
+    "アプリの削除、Safariの履歴の消去、機種変更などにより、記録が失われることがあります。大切な記録は「バックアップ」で保存してください。",
+    "目標を達成したときや月ごとの状況などは、画面のスクリーンショットで記録を残しておくこともできます。",
+    "本アプリの内容は、予告なく変更または提供を終了する場合があります。",
+    "本アプリの利用により生じた損害について、作成者は責任を負いかねます。",
+    "個別のサポートは行っておりません。",
+  ],
+  hint: "先にSafariの共有ボタンから「ホーム画面に追加」をして、ホーム画面のアイコンから開いたアプリでパスワードを入力してください。",
+  label: "パスワード", button: "同意して始める",
+  wrong: "パスワードが正しくありません。", closed: "新規登録の受付は終了しました。",
+};
+
+// ---- 初回のパスワード入力（受付期限つき）----
+(function(){
+  const fnv = str => { let h = 0x811c9dc5; for (const b of new TextEncoder().encode(str)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, "0"); };
+  const $ = id => document.getElementById(id);
+  const li = GATE.items.map(t => `<li>${t}</li>`).join("");
+  $("gTitle").textContent = GATE.title; $("nSum").textContent = GATE.title;
+  $("gList").innerHTML = li; $("nList").innerHTML = li;
+  $("gHint").textContent = GATE.hint; $("gLabel").textContent = GATE.label; $("gBtn").textContent = GATE.button;
+  const AKEY = KEY + "-auth";
+  let ok = false;
+  try {
+    ok = !!localStorage.getItem(AKEY);
+    // この更新の前から使っている人は、そのまま使えるようにする
+    if (!ok && localStorage.getItem(KEY)) { localStorage.setItem(AKEY, JSON.stringify({ at: "existing" })); ok = true; }
+  } catch(e) {}
+  if (ok) return;
+  const gate = $("gate"); gate.hidden = false; document.body.classList.add("locked");
+  const d = new Date(), today = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+  const open = CFG.codes.filter(c => today <= c.until);
+  if (!open.length) { $("gErr").textContent = GATE.closed; $("gPass").disabled = true; $("gBtn").disabled = true; return; }
+  const tryPass = () => {
+    const h = fnv("chant:" + $("gPass").value.trim());
+    if (!open.some(c => c.hash === h)) { $("gErr").textContent = GATE.wrong; return; }
+    try { localStorage.setItem(AKEY, JSON.stringify({ at: today })); } catch(e) {}
+    gate.hidden = true; document.body.classList.remove("locked");
+    if (typeof jumpToday === "function") requestAnimationFrame(jumpToday);
+    if (typeof jumpNow === "function") requestAnimationFrame(jumpNow);
+  };
+  $("gBtn").addEventListener("click", tryPass);
+  $("gPass").addEventListener("keydown", e => { if (e.key === "Enter") tryPass(); });
+})();
 let cur = todayISO();
 const day = () => state.days[cur] || { t:[], r:[] };
 const hm = m => (m % 1440 === 0 && m > 0 ? 0 : Math.floor(m/60)) + ":" + pad(m % 60);
