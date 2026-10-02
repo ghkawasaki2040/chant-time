@@ -32,7 +32,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
   font-size:15px;line-height:1.45}
 .num{font-variant-numeric:tabular-nums}
-.wrap{max-width:520px;margin:0 auto;padding:0 12px 90px}
+.wrap{max-width:520px;margin:0 auto;padding:0 12px calc(16px + env(safe-area-inset-bottom,0px))}
 /* 上部（固定） */
 .head{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:8px 0 8px}
 .card{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
@@ -91,8 +91,8 @@ body{margin:0;background:var(--paper);color:var(--ink);
   padding:4px 0;width:100%;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
 .plan label.today{color:var(--done);font-weight:700}
 .plan label.today select{border-color:var(--done)}
-.foot{position:fixed;left:0;right:0;bottom:0;z-index:6;display:flex;gap:8px;justify-content:center;
-  padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--paper);border-top:1px solid var(--rule)}
+/* ボタン：iPhone で位置がずれないよう、画面に固定せず時間割のすぐ上に置く */
+.foot{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
 .foot button{font:inherit;font-size:14px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:18px;padding:6px 14px}
 .foot button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
 .note{font-size:12px;color:var(--sub);text-align:center;margin:12px 0 0}
@@ -130,6 +130,13 @@ body{margin:0;background:var(--paper);color:var(--ink);
     </div>
   </div>
 
+  <div class="foot">
+  <button class="main" id="todayBtn">今日</button>
+  <button id="exportBtn">バックアップ</button>
+  <button id="importBtn">復元</button>
+  <button id="reloadBtn" aria-label="更新">⟳</button>
+  <input id="importFile" type="file" accept="application/json,.json" hidden>
+  </div>
   <div class="card">
     <div class="hdr num"><span>start</span><span></span><span>end</span><span id="tHdr">target</span><span>real</span></div>
     <div class="list" id="list"></div>
@@ -137,13 +144,6 @@ body{margin:0;background:var(--paper);color:var(--ink);
   <p class="note">target をタップすると 🟡（予定）、real をタップすると 🔵（実施）になり、もう一度タップで ○ に戻ります。記録はこのスマホの中に保存されます。</p>
 </div>
 
-<div class="foot">
-  <button class="main" id="todayBtn">今日</button>
-  <button id="exportBtn">バックアップ</button>
-  <button id="importBtn">復元</button>
-  <button id="reloadBtn" aria-label="更新">⟳</button>
-  <input id="importFile" type="file" accept="application/json,.json" hidden>
-</div>
 
 <script>
 const CFG = {"perHour": 3400, "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12]};
@@ -167,6 +167,10 @@ function migrate(st){              // 旧版（20分ごとの on）からの変�
 }
 state = migrate(state);
 function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert("保存できませんでした。プライベートブラウズを解除してください。"); } }
+// iPhone：プルダウン（ドラム）を閉じた後に画面のずれを元に戻す
+document.addEventListener("focusout", e => {
+  if (e.target.matches && e.target.matches("select, input")) setTimeout(() => window.scrollTo(window.scrollX, window.scrollY), 50);
+});
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
 // ---- 日付 ----
