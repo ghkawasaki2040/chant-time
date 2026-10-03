@@ -46,6 +46,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .sum{display:grid;grid-template-columns:4.6em 3.4em 2.4em 1fr auto;align-items:center;gap:0 6px;padding:6px 12px}
 .sum > *{padding:3px 0}
 .sum .lb{font-weight:700}
+.sum .copy{justify-self:end;font:inherit;font-size:13px;font-weight:600;color:#8A6A00;background:#FFF3C4;border:1px solid #E8C94A;border-radius:14px;padding:3px 12px}
 .sum .done-row{color:var(--done);font-weight:700}
 .sum .urow{grid-column:1 / -1;display:flex;align-items:center;gap:6px}
 .sum .urow .lb{margin-right:2px;white-space:nowrap}
@@ -153,7 +154,7 @@ body.locked{overflow:hidden}
         <span class="gv" id="goalH"></span>
         <span>時間</span>
         <span class="min" id="goalMin"></span>
-        <span></span>
+        <button class="copy" id="copyBtn" aria-label="先週の同じ曜日の target をコピー">copy</button>
         <span class="lb done-row">達成</span>
         <span class="val done-row" id="doneH"></span>
         <span class="done-row">時間</span>
@@ -184,7 +185,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dateMin": "2026-09-01", "dateMax": "2027-11-30", "useEnd": "2027-11-30", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "12"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dateMin": "2026-09-01", "dateMax": "2027-11-30", "useEnd": "2027-11-30", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "13"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -438,6 +439,17 @@ document.getElementById("list").addEventListener("click", e => {
   const allOn = bl.every(x => set.has(x));
   bl.forEach(x => allOn ? set.delete(x) : set.add(x));
   state.days[cur] = { t: dd.t, r: dd.r, [k]: [...set].sort((a,b)=>a-b) };
+  save(); render();
+});
+// ---- copy：先週の同じ曜日の target（🟡）を、表示中の日にコピー ----
+document.getElementById("copyBtn").addEventListener("click", () => {
+  const d = parse(cur); d.setDate(d.getDate() - 7);
+  const src = state.days[iso(d)], wd = ["月","火","水","木","金","土","日"][(d.getDay()+6)%7];
+  const label = `${d.getMonth()+1}/${d.getDate()}（${wd}）`;
+  if (!src || !src.t || !src.t.length) { alert(`先週の ${label} には target（🟡）がありません。`); return; }
+  const dd = day();
+  if (dd.t.length && !confirm(`今の target（🟡）を、先週の ${label} の内容に置き換えます。よろしいですか？`)) return;
+  state.days[cur] = { t: [...src.t], r: dd.r };
   save(); render();
 });
 function move(n){ const d = parse(cur); d.setDate(d.getDate()+n); const t = iso(d); if (t < CFG.dateMin || t > CFG.dateMax) return; cur = t; render(); }
