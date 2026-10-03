@@ -184,7 +184,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dateMin": "2026-09-01", "dateMax": "2027-11-30", "useEnd": "2027-11-30", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "11"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dateMin": "2026-09-01", "dateMax": "2027-11-30", "useEnd": "2027-11-30", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "12"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -194,7 +194,7 @@ const KEY = "chant-time-v1";
     if (raw && prev !== CFG.version) {
       const n = new Date(), p = x => String(x).padStart(2, "0");
       const at = n.getFullYear() + "/" + p(n.getMonth()+1) + "/" + p(n.getDate()) + " " + p(n.getHours()) + ":" + p(n.getMinutes());
-      localStorage.setItem(KEY + "-snap", JSON.stringify({ at, data: raw }));
+      localStorage.setItem(KEY + "-snap", JSON.stringify({ at, ts: n.getTime(), data: raw }));
     }
     localStorage.setItem(VKEY, CFG.version);
   } catch(e) {}
@@ -307,11 +307,13 @@ const BK = {
     "「復元」をすると、今の記録と設定は、バックアップの内容に丸ごと置き換わります。バックアップを取った日より後に入力した記録は消えます。",
     "復元する前に、今の状態もバックアップしておくと、元に戻せるので安心です。",
     "機種変更のときは、古いスマホでバックアップを取り、新しいスマホで「復元」してください。",
-    "アプリが新しい版に更新される直前に、記録の控えを自動で残しています。更新後に記録がおかしくなったときは、下のボタンで更新前の状態に戻せます。",
+    "アプリが新しい版に更新される直前に、記録の控えを自動で残しています。更新後に記録がおかしくなったときは、下のボタンで更新前の状態に戻せます（更新から7日以内）。",
   ],
   snap: "更新前の控え：", snapBtn: "この状態に戻す",
-  snapConfirm: "記録を更新前の状態に戻します。更新後に入力した記録は消えます。よろしいですか？",
+  snapConfirm: (at, n) => "記録を " + at + "（更新前）の状態に戻します。\n" +
+    "この後に入力した記録" + (n > 0 ? "（" + n + "日分）" : "") + "は消えます。\n先に「バックアップ」を取ることをおすすめします。\nよろしいですか？",
   snapNone: "更新前の控えはまだありません。",
+  snapOld: "更新前の控えは、更新から7日以内だけ使えます。",
 };
 
 // ---- データのバックアップと復元について（説明と、更新前の控えに戻すボタン）----
@@ -323,9 +325,15 @@ const BK = {
   try { snap = JSON.parse(localStorage.getItem(KEY + "-snap") || "null"); } catch(e) {}
   const box = $("snapBox");
   if (!snap) { box.textContent = BK.snapNone; return; }
+  // 控えの日時（古い控えは表示用の日時から計算）
+  const ts = snap.ts || (() => { const m = String(snap.at).match(/(\d+)\/(\d+)\/(\d+) (\d+):(\d+)/);
+    return m ? new Date(+m[1], m[2]-1, +m[3], +m[4], +m[5]).getTime() : Date.now(); })();
+  const d0 = new Date(ts), now = new Date();
+  const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d0.getFullYear(), d0.getMonth(), d0.getDate())) / 86400000);
+  if (days > 7) { box.textContent = BK.snapOld; return; }          // 更新から7日を過ぎたらボタンを表示しない
   box.innerHTML = `<span>${BK.snap}${snap.at}</span><button id="snapBtn">${BK.snapBtn}</button>`;
   $("snapBtn").addEventListener("click", () => {
-    if (!confirm(BK.snapConfirm)) return;
+    if (!confirm(BK.snapConfirm(snap.at, days))) return;
     try { localStorage.setItem(KEY, snap.data); } catch(e) {}
     location.reload();
   });
