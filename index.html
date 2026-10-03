@@ -111,7 +111,7 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .gerr{color:#C62828;font-size:13px;min-height:1.2em;margin:8px 0 0}
 body.locked{overflow:hidden}
 .notice{max-width:520px;margin:10px auto 0;font-size:12px;color:var(--sub)}
-.notice summary{cursor:pointer;text-align:center}
+.notice summary{cursor:pointer;text-align:center;color:#E07A10;font-weight:600}
 .notice ul{color:var(--sub);font-size:12px;margin-top:6px}
 .note{font-size:12px;color:var(--sub);text-align:center;margin:12px 0 0}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
@@ -170,7 +170,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 5, "tue": 5, "wed": 5, "thu": 5, "fri": 7, "sat": 2, "sun": 2, "hol": 2}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12]};
+const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12]};
 const KEY = "chant-time-v1";
 const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const PLAN_ITEMS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"],["hol","Hol"]];
@@ -231,8 +231,13 @@ const GATE = {
   let ok = false;
   try {
     ok = !!localStorage.getItem(AKEY);
-    // この更新の前から使っている人は、そのまま使えるようにする
-    if (!ok && localStorage.getItem(KEY)) { localStorage.setItem(AKEY, JSON.stringify({ at: "existing" })); ok = true; }
+    // この更新の前から使っている人（記録が入っている人）は、そのまま使えるようにする
+    if (!ok) {
+      let has = false;
+      try { const o = JSON.parse(localStorage.getItem(KEY) || "null");
+            has = !!o && ((o.entries && Object.keys(o.entries).length > 0) || (o.days && Object.keys(o.days).length > 0)); } catch(e) {}
+      if (has) { localStorage.setItem(AKEY, JSON.stringify({ at: "existing" })); ok = true; }
+    }
   } catch(e) {}
   if (ok) return;
   const gate = $("gate"); gate.hidden = false; document.body.classList.add("locked");
