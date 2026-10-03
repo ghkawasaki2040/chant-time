@@ -112,12 +112,25 @@ body{margin:0;background:var(--paper);color:var(--ink);
 body.locked{overflow:hidden}
 .notice{max-width:520px;margin:10px auto 0;font-size:12px;color:var(--sub)}
 .notice summary{cursor:pointer;text-align:center;color:#E07A10;font-weight:600}
+.notice.bk{margin-top:4px}
+.notice.bk summary{color:var(--ink)}
+.snap{margin:8px 0 0;font-size:12px;color:var(--sub);text-align:center}
+.snap button{font:inherit;font-size:13px;margin-left:6px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:14px;padding:3px 10px}
+[hidden]{display:none !important}
+/* 使用期限が過ぎたときの画面 */
+.expired{position:fixed;inset:0;z-index:110;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px}
+.expired .gbox{text-align:center}
+.expired p{font-size:15px;margin:0 0 8px}
+.expired small{display:block;font-size:12px;color:var(--sub);margin-bottom:14px}
+.expired button{font:inherit;font-size:16px;font-weight:700;color:#fff;background:#1D2A3A;border:0;border-radius:10px;padding:10px 24px}
+
 .notice ul{color:var(--sub);font-size:12px;margin-top:6px}
 .note{font-size:12px;color:var(--sub);text-align:center;margin:12px 0 0}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}}
 </style>
 </head>
 <body>
+<div id="expired" class="expired" hidden><div class="gbox"><p id="xMsg"></p><small id="xSub"></small><button id="xBtn" class="xb"></button></div></div>
 <div id="gate" class="gate" hidden><div class="gbox">
   <h2 id="gTitle"></h2><ul id="gList"></ul><p class="ghint" id="gHint"></p>
   <label class="glab"><span id="gLabel"></span><input id="gPass" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
@@ -166,12 +179,26 @@ body.locked{overflow:hidden}
   </div>
   <p class="note">target をタップすると 🟡（予定）、real をタップすると 🔵（実施）になり、もう一度タップで ○ に戻ります。記録はこのスマホの中に保存されます。</p>
   <details class="notice"><summary id="nSum"></summary><ul id="nList"></ul></details>
+  <details class="notice bk"><summary id="bSum"></summary><ul id="bList"></ul><div class="snap" id="snapBox"></div></details>
 </div>
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12]};
+const CFG = {"perHour": 3400, "codes": [{"hash": "7a7fc9b3", "until": "2026-10-31"}], "dateMin": "2026-09-01", "dateMax": "2027-11-30", "useEnd": "2027-11-30", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "11"};
 const KEY = "chant-time-v1";
+
+// ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
+(function(){
+  try {
+    const VKEY = KEY + "-ver", raw = localStorage.getItem(KEY), prev = localStorage.getItem(VKEY);
+    if (raw && prev !== CFG.version) {
+      const n = new Date(), p = x => String(x).padStart(2, "0");
+      const at = n.getFullYear() + "/" + p(n.getMonth()+1) + "/" + p(n.getDate()) + " " + p(n.getHours()) + ":" + p(n.getMinutes());
+      localStorage.setItem(KEY + "-snap", JSON.stringify({ at, data: raw }));
+    }
+    localStorage.setItem(VKEY, CFG.version);
+  } catch(e) {}
+})();
 const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
 const PLAN_ITEMS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"],["hol","Hol"]];
 const B = 5;   // 記録は5分刻みで保存（単位を変えても記録が残るように）
@@ -205,6 +232,7 @@ const todayISO = () => iso(new Date());
 const GATE = {
   title: "ご利用にあたって",
   items: [
+    "本アプリの利用期間は、プレ期間として 2026/9/1〜2027/11/30 です。期間を過ぎるとご利用いただけません。",
     "このアプリはご招待した方専用です。URLやパスワードの共有はご遠慮ください。",
     "本アプリは無料で提供しており、動作や計算結果の正確さを保証するものではありません。ご利用はご自身の判断と責任でお願いいたします。",
     "記録はお使いのスマホの中にのみ保存され、外部に送信されることはありません。作成者が記録を見ることはできません。",
@@ -217,6 +245,9 @@ const GATE = {
   hint: "先にSafariの共有ボタンから「ホーム画面に追加」をして、ホーム画面のアイコンから開いたアプリでパスワードを入力してください。",
   label: "パスワード", button: "同意して始める",
   wrong: "パスワードが正しくありません。", closed: "新規登録の受付は終了しました。",
+  expired: d => d + " でこのアプリの使用期限が過ぎました。",
+  expiredSub: "記録は下のボタンでバックアップとして保存できます。",
+  expiredBtn: "バックアップ",
 };
 
 // ---- 初回のパスワード入力（受付期限つき）----
@@ -227,6 +258,18 @@ const GATE = {
   $("gTitle").textContent = GATE.title; $("nSum").textContent = GATE.title;
   $("gList").innerHTML = li; $("nList").innerHTML = li;
   $("gHint").textContent = GATE.hint; $("gLabel").textContent = GATE.label; $("gBtn").textContent = GATE.button;
+
+  // 使用期限（プレ期間の終了日）を過ぎたら、使えない画面を表示（バックアップだけはできる）
+  {
+    const n = new Date(), t = n.getFullYear() + "-" + String(n.getMonth()+1).padStart(2,"0") + "-" + String(n.getDate()).padStart(2,"0");
+    if (t > CFG.useEnd) {
+      const x = $("expired"); x.hidden = false; document.body.classList.add("locked");
+      $("xMsg").textContent = GATE.expired(CFG.useEnd.replace(/-/g, "/"));
+      $("xSub").textContent = GATE.expiredSub; $("xBtn").textContent = GATE.expiredBtn;
+      $("xBtn").addEventListener("click", () => { const b = document.getElementById("exportBtn"); if (b) b.click(); });
+      return;
+    }
+  }
   const AKEY = KEY + "-auth";
   let ok = false;
   try {
@@ -254,6 +297,38 @@ const GATE = {
   };
   $("gBtn").addEventListener("click", tryPass);
   $("gPass").addEventListener("keydown", e => { if (e.key === "Enter") tryPass(); });
+})();
+const BK = {
+  title: "データのバックアップと復元について",
+  items: [
+    "記録はこのスマホの中にだけ保存されています。アプリの削除、Safariの履歴の消去、機種変更などで記録が失われることがあります。",
+    "「バックアップ」を押すと、その時点のすべての記録と設定をファイルに保存できます。ファイルアプリに保存したり、自分宛てにメールやLINEで送ったりしておいてください。",
+    "月末やアプリの更新の前など、区切りのときにバックアップを取っておくことをおすすめします。",
+    "「復元」をすると、今の記録と設定は、バックアップの内容に丸ごと置き換わります。バックアップを取った日より後に入力した記録は消えます。",
+    "復元する前に、今の状態もバックアップしておくと、元に戻せるので安心です。",
+    "機種変更のときは、古いスマホでバックアップを取り、新しいスマホで「復元」してください。",
+    "アプリが新しい版に更新される直前に、記録の控えを自動で残しています。更新後に記録がおかしくなったときは、下のボタンで更新前の状態に戻せます。",
+  ],
+  snap: "更新前の控え：", snapBtn: "この状態に戻す",
+  snapConfirm: "記録を更新前の状態に戻します。更新後に入力した記録は消えます。よろしいですか？",
+  snapNone: "更新前の控えはまだありません。",
+};
+
+// ---- データのバックアップと復元について（説明と、更新前の控えに戻すボタン）----
+(function(){
+  const $ = id => document.getElementById(id);
+  $("bSum").textContent = BK.title;
+  $("bList").innerHTML = BK.items.map(t => `<li>${t}</li>`).join("");
+  let snap = null;
+  try { snap = JSON.parse(localStorage.getItem(KEY + "-snap") || "null"); } catch(e) {}
+  const box = $("snapBox");
+  if (!snap) { box.textContent = BK.snapNone; return; }
+  box.innerHTML = `<span>${BK.snap}${snap.at}</span><button id="snapBtn">${BK.snapBtn}</button>`;
+  $("snapBtn").addEventListener("click", () => {
+    if (!confirm(BK.snapConfirm)) return;
+    try { localStorage.setItem(KEY, snap.data); } catch(e) {}
+    location.reload();
+  });
 })();
 let cur = todayISO();
 const day = () => state.days[cur] || { t:[], r:[] };
@@ -357,7 +432,7 @@ document.getElementById("list").addEventListener("click", e => {
   state.days[cur] = { t: dd.t, r: dd.r, [k]: [...set].sort((a,b)=>a-b) };
   save(); render();
 });
-function move(n){ const d = parse(cur); d.setDate(d.getDate()+n); cur = iso(d); render(); }
+function move(n){ const d = parse(cur); d.setDate(d.getDate()+n); const t = iso(d); if (t < CFG.dateMin || t > CFG.dateMax) return; cur = t; render(); }
 document.getElementById("prev").addEventListener("click", () => move(-1));
 document.getElementById("next").addEventListener("click", () => move(1));
 function jumpNow(){
@@ -387,7 +462,7 @@ fileIn.addEventListener("change", async () => {
   try {
     const s = JSON.parse(await f.text());
     if (!s || typeof s.days !== "object") throw new Error();
-    if (!confirm("バックアップの内容で今の記録を置き換えます。よろしいですか？")) return;
+    if (!confirm("バックアップの内容で、今の記録と設定をすべて置き換えます。バックアップを取った日より後に入力した記録は消えます。必要な場合は「キャンセル」を押して、先に今の状態をバックアップしてください。復元してよろしいですか？")) return;
     state = migrate({ days: s.days, plan: {...CFG.plan, ...(s.plan||{})}, unit: s.unit || CFG.unit });
     save(); unitSel.value = String(state.unit);
     document.querySelectorAll("select[data-plan]").forEach(x => x.value = String(state.plan[x.dataset.plan]));
