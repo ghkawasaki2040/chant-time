@@ -185,7 +185,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "b0f30161", "dom": 1}, {"hash": "adf2fca8", "dom": 2}, {"hash": "aef2fe3b", "dom": 3}, {"hash": "b3f3061a", "dom": 4}, {"hash": "b4f307ad", "dom": 5}, {"hash": "b1f302f4", "dom": 6}, {"hash": "b2f30487", "dom": 7}, {"hash": "a7f2f336", "dom": 8}, {"hash": "a8f2f4c9", "dom": 9}, {"hash": "29efee45", "dom": 10}, {"hash": "28efecb2", "dom": 11}, {"hash": "27efeb1f", "dom": 12}, {"hash": "26efe98c", "dom": 13}, {"hash": "25efe7f9", "dom": 14}, {"hash": "24efe666", "dom": 15}, {"hash": "23efe4d3", "dom": 16}, {"hash": "22efe340", "dom": 17}, {"hash": "31effadd", "dom": 18}, {"hash": "30eff94a", "dom": 19}, {"hash": "23eda63c", "dom": 20}, {"hash": "24eda7cf", "dom": 21}, {"hash": "25eda962", "dom": 22}, {"hash": "26edaaf5", "dom": 23}, {"hash": "1fed9ff0", "dom": 24}, {"hash": "20eda183", "dom": 25}, {"hash": "21eda316", "dom": 26}, {"hash": "22eda4a9", "dom": 27}, {"hash": "2bedb2d4", "dom": 28}, {"hash": "2cedb467", "dom": 29}, {"hash": "1deb5e33", "dom": 30}, {"hash": "1ceb5ca0", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "15"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "b0f30161", "dom": 1}, {"hash": "adf2fca8", "dom": 2}, {"hash": "aef2fe3b", "dom": 3}, {"hash": "b3f3061a", "dom": 4}, {"hash": "b4f307ad", "dom": 5}, {"hash": "b1f302f4", "dom": 6}, {"hash": "b2f30487", "dom": 7}, {"hash": "a7f2f336", "dom": 8}, {"hash": "a8f2f4c9", "dom": 9}, {"hash": "29efee45", "dom": 10}, {"hash": "28efecb2", "dom": 11}, {"hash": "27efeb1f", "dom": 12}, {"hash": "26efe98c", "dom": 13}, {"hash": "25efe7f9", "dom": 14}, {"hash": "24efe666", "dom": 15}, {"hash": "23efe4d3", "dom": 16}, {"hash": "22efe340", "dom": 17}, {"hash": "31effadd", "dom": 18}, {"hash": "30eff94a", "dom": 19}, {"hash": "23eda63c", "dom": 20}, {"hash": "24eda7cf", "dom": 21}, {"hash": "25eda962", "dom": 22}, {"hash": "26edaaf5", "dom": 23}, {"hash": "1fed9ff0", "dom": 24}, {"hash": "20eda183", "dom": 25}, {"hash": "21eda316", "dom": 26}, {"hash": "22eda4a9", "dom": 27}, {"hash": "2bedb2d4", "dom": 28}, {"hash": "2cedb467", "dom": 29}, {"hash": "1deb5e33", "dom": 30}, {"hash": "1ceb5ca0", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "16"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -233,9 +233,9 @@ const todayISO = () => iso(new Date());
 const GATE = {
   title: "ご利用にあたって",
   items: [
-    "本アプリの利用期限は、2026/9/1〜2031/12/31までとなります。期限を過ぎるとご利用いただけません。",
-    "このアプリはご招待した方専用です。URLやパスワードの共有はご遠慮ください。",
+    "このアプリはご招待した方専用です。URLやパスワードの共有、拡散はご遠慮ください。",
     "本アプリは無料で提供しており、動作や計算結果の正確さを保証するものではありません。ご利用はご自身の判断と責任でお願いいたします。",
+    "本アプリの利用期間は、2026/9/1からとなります。終了期限は、2026/11/30を予定しています。その後は、予告なく終了する場合があります。",
     "記録はお使いのスマホの中にのみ保存され、外部に送信されることはありません。作成者が記録を見ることはできません。",
     "アプリの削除、Safariの履歴の消去、機種変更などにより、記録が失われることがあります。大切な記録は「バックアップ」で保存してください。",
     "目標を達成したときや月ごとの状況などは、画面のスクリーンショットで記録を残しておくこともできます。",
