@@ -11,6 +11,17 @@
 <meta name="apple-mobile-web-app-title" content="chant time">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
+<script>
+// 万一プログラムが止まったときに、原因を画面に表示する（不具合の調査用）
+window.addEventListener("error", e => {
+  try {
+    const d = document.createElement("div");
+    d.style.cssText = "position:fixed;left:8px;right:8px;bottom:8px;z-index:999;background:#C62828;color:#fff;font:12px/1.4 sans-serif;padding:8px 10px;border-radius:8px";
+    d.textContent = "Error: " + (e.message || "") + " (" + (e.lineno || "") + ":" + (e.colno || "") + ")";
+    (document.body || document.documentElement).appendChild(d);
+  } catch(_) {}
+});
+</script>
 <title>chant time</title>
 <style>
 :root{
@@ -187,7 +198,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "20"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "22"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -237,7 +248,7 @@ const GATE = {
   items: [
     "このアプリはご招待した方専用です。URLやパスワードの共有、拡散はご遠慮ください。",
     "本アプリは無料で提供しており、動作や計算結果の正確さを保証するものではありません。ご利用はご自身の判断と責任でお願いいたします。",
-    "本アプリの利用期間は、2026/9/1からとなります。終了期限は、2026/11/30を予定しています。その後は、予告なく終了する場合があります。",
+    "本アプリの利用期間は、2026/9/1からとなります。終了期限は、2027/11/30を予定しています。その後は、予告なく終了する場合があります。",
     "記録はお使いのスマホの中にのみ保存され、外部に送信されることはありません。作成者が記録を見ることはできません。",
     "アプリの削除、Safariの履歴の消去、機種変更などにより、記録が失われることがあります。大切な記録は「バックアップ」で保存してください。",
     "目標を達成したときや月ごとの状況などは、画面のスクリーンショットで記録を残しておくこともできます。",
