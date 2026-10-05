@@ -43,10 +43,10 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .date .w5{color:var(--sat)} .date .w6{color:var(--sun)}
 .nav{border:0;background:transparent;color:var(--ink);font-size:20px;width:44px;height:40px;border-radius:8px}
 .nav:active{background:var(--paper)}
-.sum{display:grid;grid-template-columns:4.6em 3.4em 2.4em 1fr auto;align-items:center;gap:0 6px;padding:6px 12px}
+.sum{display:grid;grid-template-columns:4.2em 3.2em 2.2em minmax(0,1fr) auto;align-items:center;gap:0 6px;padding:6px 12px}
 .sum > *{padding:3px 0}
 .sum .lb{font-weight:700}
-.sum .copy{justify-self:end;font:inherit;font-size:13px;font-weight:600;color:#8A6A00;background:#FFF3C4;border:1px solid #E8C94A;border-radius:14px;padding:3px 12px}
+.sum .copy{justify-self:end;font:inherit;font-size:13px;font-weight:600;color:#8A6A00;background:#FFF3C4;border:0;border-radius:14px;padding:4px 12px;white-space:nowrap}
 .sum .done-row{color:var(--done);font-weight:700}
 .sum .urow{grid-column:1 / -1;display:flex;align-items:center;gap:6px}
 .sum .urow .lb{margin-right:2px;white-space:nowrap}
@@ -60,6 +60,8 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .sum .min{text-align:center;color:var(--sub)}
 .sum .min.done-row{color:var(--done)}
 .sum .diff{font-weight:700;min-width:3.2em;text-align:right;white-space:nowrap}
+.sum .diff .emo{font-size:20px;line-height:1;vertical-align:-3px}
+.sum .diff.plus,.sum .diff.zero{font-size:14px;letter-spacing:-.02em}
 .diff.minus{color:var(--minus)} .diff.plus{color:var(--plus)} .diff.zero{color:var(--sub)}
 .bar{height:6px;background:var(--rule)}
 .bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
@@ -154,7 +156,7 @@ body.locked{overflow:hidden}
         <span class="gv" id="goalH"></span>
         <span>時間</span>
         <span class="min" id="goalMin"></span>
-        <button class="copy" id="copyBtn" aria-label="先週の同じ曜日の target をコピー">copy</button>
+        <button class="copy" id="copyBtn" aria-label="先週の同じ曜日の target をコピー">L.W copy</button>
         <span class="lb done-row">達成</span>
         <span class="val done-row" id="doneH"></span>
         <span class="done-row">時間</span>
@@ -185,7 +187,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "b0f30161", "dom": 1}, {"hash": "adf2fca8", "dom": 2}, {"hash": "aef2fe3b", "dom": 3}, {"hash": "b3f3061a", "dom": 4}, {"hash": "b4f307ad", "dom": 5}, {"hash": "b1f302f4", "dom": 6}, {"hash": "b2f30487", "dom": 7}, {"hash": "a7f2f336", "dom": 8}, {"hash": "a8f2f4c9", "dom": 9}, {"hash": "29efee45", "dom": 10}, {"hash": "28efecb2", "dom": 11}, {"hash": "27efeb1f", "dom": 12}, {"hash": "26efe98c", "dom": 13}, {"hash": "25efe7f9", "dom": 14}, {"hash": "24efe666", "dom": 15}, {"hash": "23efe4d3", "dom": 16}, {"hash": "22efe340", "dom": 17}, {"hash": "31effadd", "dom": 18}, {"hash": "30eff94a", "dom": 19}, {"hash": "23eda63c", "dom": 20}, {"hash": "24eda7cf", "dom": 21}, {"hash": "25eda962", "dom": 22}, {"hash": "26edaaf5", "dom": 23}, {"hash": "1fed9ff0", "dom": 24}, {"hash": "20eda183", "dom": 25}, {"hash": "21eda316", "dom": 26}, {"hash": "22eda4a9", "dom": 27}, {"hash": "2bedb2d4", "dom": 28}, {"hash": "2cedb467", "dom": 29}, {"hash": "1deb5e33", "dom": 30}, {"hash": "1ceb5ca0", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "16"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "b0f30161", "dom": 1}, {"hash": "adf2fca8", "dom": 2}, {"hash": "aef2fe3b", "dom": 3}, {"hash": "b3f3061a", "dom": 4}, {"hash": "b4f307ad", "dom": 5}, {"hash": "b1f302f4", "dom": 6}, {"hash": "b2f30487", "dom": 7}, {"hash": "a7f2f336", "dom": 8}, {"hash": "a8f2f4c9", "dom": 9}, {"hash": "29efee45", "dom": 10}, {"hash": "28efecb2", "dom": 11}, {"hash": "27efeb1f", "dom": 12}, {"hash": "26efe98c", "dom": 13}, {"hash": "25efe7f9", "dom": 14}, {"hash": "24efe666", "dom": 15}, {"hash": "23efe4d3", "dom": 16}, {"hash": "22efe340", "dom": 17}, {"hash": "31effadd", "dom": 18}, {"hash": "30eff94a", "dom": 19}, {"hash": "23eda63c", "dom": 20}, {"hash": "24eda7cf", "dom": 21}, {"hash": "25eda962", "dom": 22}, {"hash": "26edaaf5", "dom": 23}, {"hash": "1fed9ff0", "dom": 24}, {"hash": "20eda183", "dom": 25}, {"hash": "21eda316", "dom": 26}, {"hash": "22eda4a9", "dom": 27}, {"hash": "2bedb2d4", "dom": 28}, {"hash": "2cedb467", "dom": 29}, {"hash": "1deb5e33", "dom": 30}, {"hash": "1ceb5ca0", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "18"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -407,7 +409,10 @@ function render(){
   document.getElementById("doneH").textContent = (doneMin/60).toFixed(1);
   document.getElementById("doneMin").textContent = "（" + doneMin + "）";
   const df = document.getElementById("diff");
-  df.textContent = diff < 0 ? "あと" + (-diff) + "分" : diff > 0 ? "+" + diff + "分" : "達成";
+  // 達成したら月ごとの絵文字（表示している日の月）。超えた分も表示
+  const EMO = ["🎽","⛄️","🌸","🌷","🎏","☀️","🏄","🌻","🌕","🌰","🍁","⛷️"];
+  const emo = `<span class="emo">${EMO[d.getMonth()]}</span>`;
+  df.innerHTML = diff < 0 ? "あと" + (-diff) + "分" : diff > 0 ? emo + " +" + diff + "分😁" : emo + "😁";
   df.className = "diff " + (diff < 0 ? "minus" : diff > 0 ? "plus" : "zero");
   // 実施時間 × 3,400回/1時間
   document.getElementById("chants").innerHTML =
