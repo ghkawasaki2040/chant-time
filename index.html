@@ -187,7 +187,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "b0f30161", "dom": 1}, {"hash": "adf2fca8", "dom": 2}, {"hash": "aef2fe3b", "dom": 3}, {"hash": "b3f3061a", "dom": 4}, {"hash": "b4f307ad", "dom": 5}, {"hash": "b1f302f4", "dom": 6}, {"hash": "b2f30487", "dom": 7}, {"hash": "a7f2f336", "dom": 8}, {"hash": "a8f2f4c9", "dom": 9}, {"hash": "29efee45", "dom": 10}, {"hash": "28efecb2", "dom": 11}, {"hash": "27efeb1f", "dom": 12}, {"hash": "26efe98c", "dom": 13}, {"hash": "25efe7f9", "dom": 14}, {"hash": "24efe666", "dom": 15}, {"hash": "23efe4d3", "dom": 16}, {"hash": "22efe340", "dom": 17}, {"hash": "31effadd", "dom": 18}, {"hash": "30eff94a", "dom": 19}, {"hash": "23eda63c", "dom": 20}, {"hash": "24eda7cf", "dom": 21}, {"hash": "25eda962", "dom": 22}, {"hash": "26edaaf5", "dom": 23}, {"hash": "1fed9ff0", "dom": 24}, {"hash": "20eda183", "dom": 25}, {"hash": "21eda316", "dom": 26}, {"hash": "22eda4a9", "dom": 27}, {"hash": "2bedb2d4", "dom": 28}, {"hash": "2cedb467", "dom": 29}, {"hash": "1deb5e33", "dom": 30}, {"hash": "1ceb5ca0", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "19"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "20"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -248,6 +248,7 @@ const GATE = {
   hint: "先にSafariの共有ボタンから「ホーム画面に追加」をして、ホーム画面のアイコンから開いたアプリでパスワードを入力してください。",
   label: "パスワード", button: "同意して始める",
   wrong: "パスワードが正しくありません。", closed: "新規登録の受付は終了しました。",
+  limit: "パスワード入力制限オーバーです。",
   expired: d => d + " でこのアプリの使用期限が過ぎました。",
   expiredSub: "記録は下のボタンでバックアップとして保存できます。",
   expiredBtn: "バックアップ",
@@ -291,9 +292,19 @@ const GATE = {
   // その日（スマホの日付の「日」）のパスワードだけ受け付ける。REG_END を過ぎたら新規登録は終了
   const open = today <= CFG.regEnd ? CFG.codes.filter(c => c.dom === d.getDate()) : [];
   if (!open.length) { $("gErr").textContent = GATE.closed; $("gPass").disabled = true; $("gBtn").disabled = true; return; }
+  // 入力ミスの回数（その日のうちに6回まちがえると、7回目から入力できない。翌日にリセット）
+  const FKEY = KEY + "-fail";
+  const getFail = () => { try { const f = JSON.parse(localStorage.getItem(FKEY) || "null"); return f && f.date === today ? f.n : 0; } catch(e) { return 0; } };
+  const lockout = () => { $("gErr").textContent = GATE.limit; $("gPass").disabled = true; $("gBtn").disabled = true; };
+  if (getFail() >= 6) { lockout(); return; }
   const tryPass = () => {
+    if (getFail() >= 6) { lockout(); return; }
     const h = fnv("chant:" + $("gPass").value.trim());
-    if (!open.some(c => c.hash === h)) { $("gErr").textContent = GATE.wrong; return; }
+    if (!open.some(c => c.hash === h)) {
+      const n = getFail() + 1;
+      try { localStorage.setItem(FKEY, JSON.stringify({ date: today, n })); } catch(e) {}
+      $("gErr").textContent = GATE.wrong; return;
+    }
     try { localStorage.setItem(AKEY, JSON.stringify({ at: today })); } catch(e) {}
     gate.hidden = true; document.body.classList.remove("locked");
     if (typeof jumpToday === "function") requestAnimationFrame(jumpToday);
