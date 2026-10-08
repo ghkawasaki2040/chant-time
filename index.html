@@ -31,64 +31,82 @@ window.addEventListener("error", e => {
   --paper:#EEF1F4; --sheet:#FFFFFF; --ink:#1D2A3A; --sub:#5F6B7A; --rule:#D5DBE2;
   --done:#1F6FC5; --done-soft:#E3EEFB; --now:#FFF6DA; --minus:#C62828; --plus:#1F6FC5;
   --sat:#2D5EA8; --sun:#B03A3A;
+  --c-blue:#1F6FC5; --tcolor:#1F4E6B; --goal:#1F6FC5; --c-yellow:#D4A21A; --c-red:#C62828;
+  --fill:#1F6F78; --fill-soft:#D6E9EA; --empty:#E3E6EA;
+  --bg-low:#E4E6E9; --bg-b:#D2E3FA; --bg-y:#FBEEBE; --bg-r:#F8D2D0;
 }
 @media (prefers-color-scheme:dark){:root{
   --paper:#141A22; --sheet:#1C242F; --ink:#E6EBF1; --sub:#9AA6B4; --rule:#2C3643;
   --done:#5EA2EE; --done-soft:#1D3450; --now:#3A3420; --minus:#F08A8A; --plus:#7FB2F0;
-  --sat:#86A9E6; --sun:#EB8C8C;}}
+  --sat:#86A9E6; --sun:#EB8C8C;
+  --fill:#5DB7BF; --fill-soft:#1E3A3E; --empty:#2A323D;
+  --bg-low:#2E333A; --bg-b:#1E3A5F; --bg-y:#4A3E14; --bg-r:#5A2222; --goal:#7FB2F0; --tcolor:#6FA9C9;}}
 *,*::before,*::after{box-sizing:inherit}
 html{-webkit-text-size-adjust:100%;touch-action:manipulation}
 button,select,.slot{touch-action:manipulation}
 body{margin:0;background:var(--paper);color:var(--ink);
   font-family:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif;
   font-size:15px;line-height:1.45}
+/* iPhone の画面上部（時計・電池の表示の下）に、スクロールした内容が透けて見えないようにする */
+body::before{content:"";position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top,0px);background:var(--paper);z-index:20}
 .num{font-variant-numeric:tabular-nums}
+[hidden]{display:none !important}
 .wrap{max-width:520px;margin:0 auto;padding:0 12px calc(16px + env(safe-area-inset-bottom,0px))}
-/* 上部（固定） */
-.head{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:8px 0 8px}
+/* タブ（Daily／Period／Summary）と言語の切り替え */
+.tabs{display:flex;gap:6px;margin:8px 0 8px;align-items:stretch}
+.tabs button{flex:1;font:inherit;font-size:15px;font-weight:600;color:var(--sub);background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:7px 0}
+.tabs button.on{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+.tabs button.lang{flex:0 0 auto;font-size:12px;padding:7px 8px}
 .card{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+.panel{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:8px 12px;margin-bottom:8px}
+/* ボタン（今日・バックアップ・復元・更新）：iPhone で位置がずれないよう、画面に固定しない */
+.btns{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
+.btns button{font:inherit;font-size:14px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:18px;padding:6px 14px}
+.btns button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
+select:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--fill);outline-offset:2px}
+.note{font-size:12px;color:var(--sub);text-align:center;margin:12px 0 0}
+
+/* ===== Daily ===== */
+.head{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);padding:0 0 8px}
 .date{display:flex;align-items:center;justify-content:space-between;padding:6px 6px;border-bottom:1px solid var(--rule)}
-.date h1{margin:0;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:600;font-size:22px;
+.date .dt{margin:0;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:600;font-size:22px;
   letter-spacing:.02em;text-align:center;flex:1}
-.date h1 small{font-size:16px;margin-left:6px}
+.date .dt small{font-size:16px;margin-left:6px}
 .date .w5{color:var(--sat)} .date .w6{color:var(--sun)}
 .nav{border:0;background:transparent;color:var(--ink);font-size:20px;width:44px;height:40px;border-radius:8px}
 .nav:active{background:var(--paper)}
 .sum{display:grid;grid-template-columns:4.2em 3.2em 2.2em minmax(0,1fr) auto;align-items:center;gap:0 6px;padding:6px 12px}
 .sum > *{padding:3px 0}
-.sum .lb{font-weight:700}
+.sum .lb{font-weight:700;white-space:nowrap}
 .sum .copy{justify-self:end;font:inherit;font-size:13px;font-weight:600;color:#8A6A00;background:#FFF3C4;border:0;border-radius:14px;padding:4px 12px;white-space:nowrap}
 .sum .done-row{color:var(--done);font-weight:700}
 .sum .urow{grid-column:1 / -1;display:flex;align-items:center;gap:6px}
-.sum .urow .lb{margin-right:2px;white-space:nowrap}
+.sum .urow .lb{margin-right:2px}
 .sum .chants{margin-left:auto;text-align:right;font-weight:700;font-size:13px;color:var(--done);white-space:nowrap}
 .sum .chants small{font-weight:500;font-size:12px;color:var(--sub)}
-.sum .gv{font-size:17px;font-weight:700;text-align:center}
+.sum .gv,.sum .val{font-size:17px;font-weight:700;text-align:center}
 .sum select{font:inherit;font-size:16px;font-weight:700;color:var(--ink);background:var(--paper);
   border:1px solid var(--rule);border-radius:6px;padding:2px 4px;text-align:center;text-align-last:center;
   -webkit-appearance:none;appearance:none;width:3.4em}
-.sum .val{font-size:17px;font-weight:700;text-align:center}
 .sum .min{text-align:center;color:var(--sub)}
 .sum .min.done-row{color:var(--done)}
 .sum .diff{font-weight:700;min-width:3.2em;text-align:right;white-space:nowrap}
 .sum .diff .emo{font-size:20px;line-height:1;vertical-align:-3px}
 .sum .diff.plus,.sum .diff.zero{font-size:14px;letter-spacing:-.02em}
 .diff.minus{color:var(--minus)} .diff.plus{color:var(--plus)} .diff.zero{color:var(--sub)}
-.bar{height:6px;background:var(--rule)}
-.bar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
-/* 時間の一覧 */
-.list{list-style:none;margin:0;padding:0}
+.dbar{height:6px;background:var(--rule)}
+.dbar i{display:block;height:100%;width:0;background:var(--done);transition:width .3s}
+.list{margin:0;padding:0}
 .hdr{display:grid;grid-template-columns:1fr 1.2em 1fr 76px 64px;font-size:12px;color:var(--sub);padding:6px 12px 4px;text-align:center;align-items:end}
 .hdr b{font-weight:700;color:var(--ink)} .hdr .ok{color:#A07800} .hdr .over{color:var(--minus)}
 .slot{display:grid;grid-template-columns:1fr 1.2em 1fr 76px 64px;align-items:stretch;text-align:center;
   width:100%;min-height:44px;padding:0 12px;border-top:1px solid var(--rule);background:var(--sheet);font-size:16px}
 .slot > span{align-self:center}
+.slot .t{color:var(--sub)}
+.slot.now{background:var(--now)}
 .cell{display:flex;align-items:center;justify-content:center;border:0;background:transparent;padding:0;margin:0;
   cursor:pointer;-webkit-tap-highlight-color:transparent;font:inherit}
 .cell:active{background:var(--paper)}
-.slot.now{background:var(--now)}
-
-.slot .t{color:var(--sub)}
 .dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--sub);opacity:.6}
 .cell.on .dot{border:0;opacity:1}
 .cell.r.on .dot{background:radial-gradient(circle at 35% 30%,#8CC3FF,var(--done) 60%,#0F4C99)}
@@ -96,62 +114,118 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .cell.part .dot{opacity:1;border-style:dashed}
 .cell.r.part .dot{border-color:var(--done)} .cell.t.part .dot{border-color:#D9A800}
 .cell:focus-visible{outline:2px solid var(--done);outline-offset:-2px}
-/* Target time（曜日ごとの目標）*/
-.plan-card{padding:8px 10px;margin-top:8px}
+/* 目標時間（曜日ごと）*/
+.plan-card{padding:8px 10px;margin-bottom:8px}
 .plan-h{font-size:12px;color:var(--sub)}
 .plan{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;margin-top:2px}
-.plan label{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--sub)}
+.plan label{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--sub);white-space:nowrap}
+.plan label.sa{color:var(--sat)} .plan label.su{color:var(--sun)}
 .plan select{font:inherit;font-size:16px;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;
   padding:4px 0;width:100%;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
-.plan label.today{color:var(--done);font-weight:700}
+.plan label.today{font-weight:700;color:var(--done)}
 .plan label.today select{border-color:var(--done)}
-/* ボタン：iPhone で位置がずれないよう、画面に固定せず時間割のすぐ上に置く */
-.foot{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
-/* 日々／集計の切り替え */
-.tabs{display:flex;gap:6px;margin:8px 0 0}
-.tabs button{flex:1;font:inherit;font-size:15px;font-weight:600;color:var(--sub);background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:7px 0}
-.tabs button.on{color:var(--paper);background:var(--ink);border-color:var(--ink)}
-/* 集計の画面 */
-.sbox{padding:10px 12px;margin-top:8px}
-.yrange{display:flex;align-items:center;justify-content:space-between;gap:4px}
-.yrange span{display:flex;align-items:baseline;gap:2px;white-space:nowrap}
-.yrange small{font-size:12px;color:var(--sub);margin:0 3px 0 1px}
-.yrange select{font:inherit;font-size:16px;font-weight:600;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:2px 0;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
-.yrange select[id$="Y"]{width:3.4em} .yrange select[id$="M"]{width:2.2em}
-.yrange .sep{color:var(--sub)}
-.yspan{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
-.shead{display:flex;align-items:baseline;gap:8px}
-.shead b{font-size:24px;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif}
-.shead b small{font-size:14px;font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
-.shead #sPct{margin-left:auto;font-size:18px;font-weight:700}
-.ssub{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px;color:var(--sub);margin-top:2px}
-.ssub b{color:var(--ink)}
-.sbar{height:12px;background:var(--rule);border-radius:4px;overflow:hidden;margin-top:8px}
-.sbar i{display:block;height:100%;width:0;background:var(--done);transition:width .4s}
-.sh{font-size:12px;color:var(--sub);margin-bottom:4px}
-.tz{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;row-gap:2px}
-.tz span{font-size:12px;color:var(--sub)}
-.tz b{font-size:18px;font-weight:700}
-.tz b.z{color:var(--sub);font-weight:400}
-.tc{display:grid;grid-template-columns:repeat(6,1fr);row-gap:2px;text-align:center}
+
+/* ===== Period ===== */
+#periodSel{width:100%;font:inherit;font-size:16px;font-weight:600;color:var(--ink);background:var(--paper);
+  border:1px solid var(--rule);border-radius:8px;padding:5px 6px}
+.prow{display:flex;gap:6px;align-items:center;margin-top:6px}
+.prow button{font:inherit;font-size:13px;border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:16px;padding:5px 10px;white-space:nowrap}
+.psum{margin-right:auto;min-width:0;font-size:12px;color:var(--sub);line-height:1.35}
+.psum b{color:var(--ink)}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:6px 8px;margin:0}
+.facts div{display:flex;align-items:baseline;gap:4px;min-width:0}
+.facts .wide{grid-column:1/-1}
+.facts .trio{justify-content:space-between;gap:8px}
+.facts .trio span{display:flex;align-items:baseline;gap:4px}
+.facts .dcell{flex-direction:column;align-items:stretch;gap:1px}
+.facts .dcell dt{font-size:12px}
+.facts dt{color:var(--sub);font-size:13px;white-space:nowrap}
+.facts dd{margin:0;font-weight:600;flex:1;min-width:0;white-space:nowrap}
+.facts input[type=date]{font:inherit;font-size:16px;font-weight:500;color:var(--ink);background:var(--paper);
+  border:1px solid var(--rule);border-radius:6px;padding:0 3px;min-height:28px;width:100%;min-width:0;letter-spacing:-.02em}
+.tsel{display:flex;align-items:center;gap:4px;flex-wrap:nowrap;white-space:nowrap}
+.tsel select{width:auto;min-width:7.6em;font:inherit;font-size:16px;font-weight:600;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:2px 2px}
+.gauge-head{display:flex;align-items:baseline;gap:8px}
+.gauge-head b{font-size:22px;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif;font-weight:600}
+.gauge-head b small{font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif;font-size:14px;font-weight:600}
+.gauge-head .pct{margin-left:auto;font-size:18px;font-weight:700;color:var(--ink)}
+.gauge-sub{display:flex;flex-wrap:wrap;gap:0 14px;font-size:13px;color:var(--sub);margin-top:1px}
+.gauge-sub b{color:var(--ink);font-weight:600}
+.goal{font-size:14px;font-weight:600;color:var(--goal);margin-top:2px}
+.bars{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:4px 8px;margin:6px 0 0}
+.bl{font-size:11px;color:var(--sub);white-space:nowrap}
+.track{position:relative;display:flex;gap:0;height:18px}
+.seg{position:relative;height:100%;background:var(--empty);overflow:hidden}
+.seg.s1{border-radius:3px 0 0 3px} .seg.s4{border-radius:0 3px 3px 0}
+.seg i{position:absolute;inset:0 auto 0 0;width:0;transition:width .5s ease-out}
+.seg.s1 i{background:var(--c-blue)} .seg.s2 i{background:var(--c-yellow)} .seg.s3 i{background:var(--c-red)}
+.seg.s4 i{background:linear-gradient(135deg,#F4DC8A,#C99A2E 55%,#E9C865)}
+.seg b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;color:#fff;
+  text-shadow:0 0 2px rgba(120,80,0,.8);opacity:0;transition:opacity .4s}
+.seg.done b{opacity:1}
+.tbar{height:14px}
+.tbar div{position:relative;height:100%;background:var(--empty);border-radius:3px;overflow:hidden}
+.tbar i{position:absolute;inset:0 auto 0 0;width:0;background:var(--tcolor);border-radius:3px;transition:width .5s ease-out}
+.scale{display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-top:-2px}
+.tc-h{font-size:12px;color:var(--sub);margin-top:10px}
+.tc{display:grid;grid-template-columns:repeat(6,1fr);row-gap:2px;margin-top:2px;text-align:center}
 .tc span{font-size:12px;color:var(--sub);padding-top:2px}
 .tc b{font-size:16px;font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--rule)}
 .tc b.z{color:var(--sub);font-weight:400}
-.wk{display:grid;column-gap:3px;align-items:baseline;text-align:center;row-gap:1px}
-.wk span{font-size:12px;color:var(--sub)}
-.wk span.sa{color:var(--sat)} .wk span.su{color:var(--sun)}
-.wk em{font-style:normal;font-size:clamp(13px,4vw,16px);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:4px 0;margin:2px 0 4px}
-.wk b{font-size:clamp(12px,3.9vw,16px);font-weight:700;padding-top:2px;white-space:nowrap;letter-spacing:-.02em}
+.wk{margin-top:4px}
+.wkg{display:grid;column-gap:3px;align-items:baseline;text-align:center}
+.wk span{font-size:12px;color:var(--sub);padding:2px 0}
+.wk .sa{color:var(--sat)} .wk .su{color:var(--sun)}
+.wk b{font-size:clamp(12px,3.9vw,16px);font-weight:700;white-space:nowrap;letter-spacing:-.02em;padding:2px 0}
 .wk b.z{color:var(--sub);font-weight:400}
-.wk small{font-size:clamp(10px,3.2vw,13px);color:var(--sub);padding:2px 0 6px;white-space:nowrap;letter-spacing:-.02em;border-bottom:1px solid var(--rule)}
-.snote{font-size:12px;color:var(--sub);text-align:center;margin:8px 0 0}
-.foot button{font:inherit;font-size:14px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:18px;padding:6px 14px}
-.foot button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
-/* 初回のパスワード入力画面 */
+.wk i{font-style:normal;font-size:clamp(10px,3.2vw,13px);color:var(--sub);white-space:nowrap;letter-spacing:-.02em;padding:2px 0 4px;border-bottom:1px solid var(--rule)}
+.tablebox{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;overflow:clip}
+table{width:100%;border-collapse:collapse;background:var(--sheet)}
+thead th{position:sticky;top:env(safe-area-inset-top,0px);z-index:2;background:var(--sheet);font-size:12px;font-weight:500;color:var(--sub);
+  text-align:right;padding:5px 8px;border-bottom:1px solid var(--rule)}
+thead th:first-child{text-align:left}
+td{padding:2px 8px;border-bottom:1px solid var(--rule);text-align:right;height:34px}
+td:first-child{text-align:left;white-space:nowrap}
+tbody tr.d{cursor:pointer;-webkit-tap-highlight-color:transparent}
+tbody tr.d:active td{background:var(--paper)}
+tr.today td{background:var(--fill-soft)}
+tr.month td{height:auto;padding:4px 8px;font-size:13px;text-align:left;font-weight:600;border-bottom:1px solid var(--rule);background:var(--paper)}
+.dw{font-size:12px;color:var(--sub);margin-left:3px}
+.w5 .dw{color:var(--sat)} .w6 .dw,.hol .dw{color:var(--sun)}
+td.tm{color:var(--ink)} td.tm.z{color:var(--sub)}
+.tot{color:var(--sub)}
+td.tot.low{background:var(--bg-low)} td.tot.ob{background:var(--bg-b);color:var(--ink)}
+td.tot.oy{background:var(--bg-y);color:var(--ink)} td.tot.or{background:var(--bg-r);color:var(--ink)}
+.mrow{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.legend{display:flex;gap:6px;font-size:11px;font-weight:400;color:var(--sub);white-space:nowrap}
+.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:3px;vertical-align:-1px;background:var(--sw)}
+.hint{font-size:12px;color:var(--sub);text-align:center;margin:0 0 6px}
+
+/* ===== Summary ===== */
+.yrange{display:flex;align-items:center;justify-content:space-between;gap:4px;flex-wrap:nowrap}
+.yrange span{display:flex;align-items:baseline;gap:2px;white-space:nowrap}
+.yrange small{font-size:12px;color:var(--sub);margin:0 3px 0 1px}
+.yrange select{font:inherit;font-size:16px;font-weight:600;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:2px 0;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
+.yrange select.y{width:3.4em} .yrange select.m{width:2.2em}
+.yrange .sep{color:var(--sub)}
+.yspan{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
+.tz{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;row-gap:2px;margin-top:4px}
+.tz span{font-size:12px;color:var(--sub)}
+.tz b{font-size:18px;font-weight:700}
+.tz b.z{color:var(--sub);font-weight:400}
+.yitem{padding:6px 0;border-top:1px solid var(--rule)}
+.yitem:first-child{border-top:0}
+.yitem .l1{display:block;font-size:14px;font-weight:600}
+.yitem .l2{display:block;font-size:12px;color:var(--sub)}
+.yitem .l2 b{color:var(--ink)}
+.ynone{font-size:13px;color:var(--sub)}
+
+/* ===== 初回のパスワード入力・使用期限・ご利用にあたって ===== */
 .gate{position:fixed;inset:0;z-index:100;background:var(--paper);overflow:auto;-webkit-overflow-scrolling:touch;
   padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(24px + env(safe-area-inset-bottom,0px))}
 .gbox{max-width:480px;margin:0 auto;background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:16px}
-.gbox h2{font-size:18px;margin:0 0 8px}
+.gbox h2{font-size:18px;margin:0 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.gbox h2 button{font:inherit;font-size:12px;font-weight:600;border:1px solid var(--rule);background:var(--paper);color:var(--ink);border-radius:12px;padding:3px 10px}
 .gbox ul,.notice ul{margin:0;padding-left:1.2em;font-size:13px;line-height:1.6;color:var(--ink)}
 .gbox li,.notice li{margin:4px 0}
 .ghint{font-size:12px;color:var(--sub);margin:10px 0}
@@ -162,119 +236,183 @@ body{margin:0;background:var(--paper);color:var(--ink);
 #gBtn:disabled{opacity:.4}
 .gerr{color:#C62828;font-size:13px;min-height:1.2em;margin:8px 0 0}
 body.locked{overflow:hidden}
-.notice{max-width:520px;margin:10px auto 0;font-size:12px;color:var(--sub)}
-.notice summary{cursor:pointer;text-align:center;color:#E07A10;font-weight:600}
-.notice.bk{margin-top:4px}
-.notice.bk summary{color:var(--ink)}
-.snap{margin:8px 0 0;font-size:12px;color:var(--sub);text-align:center}
-.snap button{font:inherit;font-size:13px;margin-left:6px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:14px;padding:3px 10px}
-[hidden]{display:none !important}
-/* 使用期限が過ぎたときの画面 */
 .expired{position:fixed;inset:0;z-index:110;background:var(--paper);display:flex;align-items:center;justify-content:center;padding:24px}
 .expired .gbox{text-align:center}
 .expired p{font-size:15px;margin:0 0 8px}
 .expired small{display:block;font-size:12px;color:var(--sub);margin-bottom:14px}
 .expired button{font:inherit;font-size:16px;font-weight:700;color:#fff;background:#1D2A3A;border:0;border-radius:10px;padding:10px 24px}
-
+.notice{max-width:520px;margin:10px auto 0;font-size:12px;color:var(--sub)}
+.notice summary{cursor:pointer;text-align:center;color:#E07A10;font-weight:600}
 .notice ul{color:var(--sub);font-size:12px;margin-top:6px}
-.note{font-size:12px;color:var(--sub);text-align:center;margin:12px 0 0}
-@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.notice.bk{margin-top:4px}
+.notice.bk summary{color:var(--ink)}
+.snap{margin:8px 0 0;font-size:12px;color:var(--sub);text-align:center}
+.snap button{font:inherit;font-size:13px;margin-left:6px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:14px;padding:3px 10px}
+@media (prefers-reduced-motion:reduce){.dbar i,.seg i,.seg b,.tbar i{transition:none}}
 </style>
 </head>
 <body>
-<div id="expired" class="expired" hidden><div class="gbox"><p id="xMsg"></p><small id="xSub"></small><button id="xBtn" class="xb"></button></div></div>
+<div id="expired" class="expired" hidden><div class="gbox"><p id="xMsg"></p><small id="xSub"></small><button id="xBtn"></button></div></div>
 <div id="gate" class="gate" hidden><div class="gbox">
-  <h2 id="gTitle"></h2><ul id="gList"></ul><p class="ghint" id="gHint"></p>
+  <h2><span id="gTitle"></span><button class="langBtn" data-i="langBtn"></button></h2><ul id="gList"></ul><p class="ghint" id="gHint"></p>
   <label class="glab"><span id="gLabel"></span><input id="gPass" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
   <button id="gBtn"></button><p class="gerr" id="gErr" role="alert"></p>
 </div></div>
 <div class="wrap">
-  <div class="tabs" role="tablist"><button id="tabD" class="on" role="tab">日々</button><button id="tabS" role="tab">Summary</button></div>
+  <div class="tabs" role="tablist"><button id="tabD" class="on" role="tab">Daily</button><button id="tabP" role="tab">Period</button><button id="tabS" role="tab">Summary</button><button class="lang langBtn" data-i="langBtn"></button></div>
 
+  <!-- ===== Daily ===== -->
   <div id="viewD">
   <div class="card plan-card">
-    <div class="plan-h">Target time</div>
-    <div class="plan" id="plan"></div>
+    <div class="plan-h" id="dPlanH"></div>
+    <div class="plan" id="dPlan"></div>
   </div>
   <div class="head">
     <div class="card">
       <div class="date">
-        <button class="nav" id="prev" aria-label="前の日">◀</button>
-        <h1 class="num" id="dateTitle"></h1>
-        <button class="nav" id="next" aria-label="次の日">▶</button>
+        <button class="nav" id="prev" data-ia="prevDay">◀</button>
+        <div class="dt num" id="dateTitle"></div>
+        <button class="nav" id="next" data-ia="nextDay">▶</button>
       </div>
       <div class="sum num">
-        <span class="lb">目標</span>
+        <span class="lb" data-i="goal"></span>
         <span class="gv" id="goalH"></span>
-        <span>時間</span>
+        <span data-i="hoursU"></span>
         <span class="min" id="goalMin"></span>
-        <button class="copy" id="copyBtn" aria-label="先週の同じ曜日の target をコピー">L.W copy</button>
-        <span class="lb done-row">達成</span>
+        <button class="copy" id="copyBtn" data-ia="copyAria">L.W copy</button>
+        <span class="lb done-row" data-i="done"></span>
         <span class="val done-row" id="doneH"></span>
-        <span class="done-row">時間</span>
+        <span class="done-row" data-i="hoursU"></span>
         <span class="min done-row" id="doneMin"></span>
         <span class="diff" id="diff"></span>
-        <div class="urow"><span class="lb">時間単位</span><select id="unit" aria-label="時間単位"></select><span>分</span>
-        <span class="chants" id="chants"></span></div>
+        <div class="urow"><span class="lb" data-i="unitL"></span><select id="unit" data-ia="unitL"></select><span data-i="minU"></span>
+        <span class="chants" id="dChants"></span></div>
       </div>
-      <div class="bar"><i id="barFill"></i></div>
+      <div class="dbar"><i id="dBarFill"></i></div>
     </div>
   </div>
-
-  <div class="foot">
-  <button class="main" id="todayBtn">今日</button>
-  <button id="exportBtn">バックアップ</button>
-  <button id="importBtn">復元</button>
-  <button id="reloadBtn" aria-label="更新">⟳</button>
-  <input id="importFile" type="file" accept="application/json,.json" hidden>
+  <div class="btns">
+    <button class="main" id="dTodayBtn" data-i="today"></button>
+    <button class="bkBtn" data-i="backup"></button>
+    <button class="rsBtn" data-i="restore"></button>
+    <button class="rlBtn" data-ia="refresh">⟳</button>
   </div>
   <div class="card">
     <div class="hdr num"><span>start</span><span></span><span>end</span><span id="tHdr">target</span><span>real</span></div>
     <div class="list" id="list"></div>
   </div>
-  <p class="note">target をタップすると 🟡（予定）、real をタップすると 🔵（実施）になり、もう一度タップで ○ に戻ります。記録はこのスマホの中に保存されます。</p>
+  <p class="note" data-i="dnote"></p>
   </div>
 
+  <!-- ===== Period ===== -->
+  <div id="viewP" hidden>
+  <section class="panel">
+    <select id="periodSel" data-ia="selPeriod"></select>
+    <div class="prow"><span class="psum num" id="pSum"></span>
+      <button id="addPeriod" data-i="newPeriod"></button><button id="delPeriod" data-i="delPeriod" data-ia="delAria"></button></div>
+  </section>
+  <section class="panel">
+    <dl class="facts num">
+      <div class="dcell"><dt data-i="start"></dt><dd><input id="start" type="date" min="2026-09-01" max="2031-12-31"></dd></div>
+      <div class="dcell"><dt data-i="end"></dt><dd><input id="end" type="date" min="2026-09-01" max="2031-12-31"></dd></div>
+      <div class="wide trio"><span><dt data-i="totalDays"></dt><dd id="totalDays"></dd></span><span><dt data-i="countdown"></dt><dd id="countdown"></dd></span><span><dt data-i="dayN"></dt><dd id="elapsedDay"></dd></span></div>
+      <div class="wide"><dt data-i="target"></dt><dd class="tsel"><select id="targetSel"></select> chants</dd></div>
+    </dl>
+  </section>
+  <section class="panel">
+    <div class="gauge-head num"><b><small data-i="current"></small><span id="pCurrent">0</span></b><span class="pct" id="pPct">–</span></div>
+    <div class="gauge-sub num"><span><span data-i="progTarget"></span><b id="pProg">0</b></span><span><span data-i="dailyTarget"></span><b id="pDaily">0</b></span></div>
+    <div class="goal num" id="pTodayGoal"></div>
+    <div class="bars">
+      <span class="bl" data-i="actual"></span>
+      <div class="track" id="pTrack"><div class="seg s1" style="flex:30"><i></i></div><div class="seg s2" style="flex:30"><i></i></div><div class="seg s3" style="flex:30"><i></i></div><div class="seg s4" style="flex:10"><i></i><b>★</b></div></div>
+      <span class="bl" data-i="targetBar"></span>
+      <div class="tbar"><div><i id="pTfill"></i></div></div>
+      <span></span>
+      <div class="scale num"><span>0</span><span id="pScaleMax"></span></div>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="plan-h" data-i="planHead"></div>
+    <div class="plan" id="pPlan"></div>
+    <div class="wk num" id="pWk"></div>
+    <div class="tc-h">1day.time count</div>
+    <div class="tc num" id="pTc"></div>
+  </section>
+  <div class="btns">
+    <button class="main" id="pTodayBtn" data-i="today"></button>
+    <button class="bkBtn" data-i="backup"></button>
+    <button class="rsBtn" data-i="restore"></button>
+    <button class="rlBtn" data-ia="refresh">⟳</button>
+  </div>
+  <p class="hint" data-i="tapRow"></p>
+  <div class="tablebox">
+  <table class="num">
+    <thead><tr><th data-i="calendar"></th><th data-i="time"></th><th data-i="count"></th><th data-i="total"></th></tr></thead>
+    <tbody id="rows"></tbody>
+  </table>
+  </div>
+  </div>
+
+  <!-- ===== Summary ===== -->
   <div id="viewS" hidden>
-  <div class="card sbox">
+  <section class="panel">
     <div class="yrange num">
-      <span><select id="sFromY" aria-label="開始の年"></select><small>年</small><select id="sFromM" aria-label="開始の月"></select><small>月</small></span>
+      <span><select class="y" id="sFromY" data-ia="fromY"></select><small data-i="yearU"></small><select class="m" id="sFromM" data-ia="fromM"></select><small data-i="monthU"></small></span>
       <span class="sep">〜</span>
-      <span><select id="sToY" aria-label="終了の年"></select><small>年</small><select id="sToM" aria-label="終了の月"></select><small>月</small></span>
+      <span><select class="y" id="sToY" data-ia="toY"></select><small data-i="yearU"></small><select class="m" id="sToM" data-ia="toM"></select><small data-i="monthU"></small></span>
     </div>
     <div class="yspan num" id="sSpan"></div>
-  </div>
-
-  <div class="card sbox">
-    <div class="shead num"><b><small>現在：</small><span id="sChants">0</span><small> chants</small></b><span id="sPct">–</span></div>
-    <div class="ssub num"><span>実施時間：<b id="sDone">0h</b></span><span>目標時間：<b id="sGoal">0h</b></span><span>日数：<b id="sDays">0</b></span></div>
-    <div class="sbar"><i id="sFill"></i></div>
-  </div>
-
-  <div class="card sbox">
-    <div class="sh">時間帯別の実施時間</div>
+  </section>
+  <section class="panel">
+    <div class="gauge-head num"><b><small data-i="current"></small><span id="sCurrent">0</span><small> chants</small></b><span class="pct" id="sPct">–</span></div>
+    <div class="gauge-sub num"><span><span data-i="sDays"></span><b id="sDays">0</b></span><span><span data-i="sTarget"></span><b id="sTarget">0</b></span></div>
+    <div class="gauge-sub num"><span><span data-i="progTarget"></span><b id="sProg">0</b></span><span><span data-i="dailyTarget"></span><b id="sDaily">0</b></span></div>
+    <div class="gauge-sub num"><span><span data-i="sHours"></span><b id="sHours">0h</b></span><span><span data-i="sGoalH"></span><b id="sGoalH">0h</b></span></div>
+    <div class="bars">
+      <span class="bl" data-i="actual"></span>
+      <div class="track" id="sTrack"><div class="seg s1" style="flex:30"><i></i></div><div class="seg s2" style="flex:30"><i></i></div><div class="seg s3" style="flex:30"><i></i></div><div class="seg s4" style="flex:10"><i></i><b>★</b></div></div>
+      <span class="bl" data-i="targetBar"></span>
+      <div class="tbar"><div><i id="sTfill"></i></div></div>
+      <span></span>
+      <div class="scale num"><span>0</span><span id="sScaleMax"></span></div>
+    </div>
+  </section>
+  <section class="panel">
+    <div class="plan-h" data-i="zones"></div>
     <div class="tz num" id="sZones"></div>
+    <div class="tc-h" data-i="wkHead"></div>
+    <div class="wk num" id="sWk"></div>
+    <div class="tc-h">1day.time count</div>
+    <div class="tc num" id="sTc"></div>
+  </section>
+  <section class="panel">
+    <div class="plan-h" data-i="plist"></div>
+    <div id="sList"></div>
+  </section>
   </div>
 
-  <div class="card sbox">
-    <div class="sh">1day.time count</div>
-    <div class="tc num" id="sTcount"></div>
-  </div>
-
-  <div class="card sbox">
-    <div class="sh">曜日別目標/実施時間/曜日合計目標</div>
-    <div class="wk num" id="sWeek"></div>
-  </div>
-  <p class="snote">目標時間は、今の Target time（曜日ごとの目標時間）で計算しています。</p>
-  </div>
+  <input id="importFile" type="file" accept="application/json,.json" hidden>
+  <p class="note" data-i="note"></p>
   <details class="notice"><summary id="nSum"></summary><ul id="nList"></ul></details>
   <details class="notice bk"><summary id="bSum"></summary><ul id="bList"></ul><div class="snap" id="snapBox"></div></details>
 </div>
 
-
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "25"};
-const KEY = "chant-time-v1";
+
+const CFG = {"codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "perHour": 3400, "countTable": {"20": 1150, "30": 1700, "40": 2300, "60": 3400, "90": 5100, "120": 6800, "150": 8500, "180": 10200, "210": 11900, "240": 13600, "270": 15300, "300": 17000, "330": 18700, "360": 20400, "390": 22100, "420": 23800, "450": 25500, "480": 27200, "510": 28900, "540": 30600, "570": 32300, "600": 34000, "660": 37400, "720": 40800}, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "start": "2026-10-01", "end": "2026-12-31", "target": 100000, "targets": [100000, 200000, 300000, 400000, 500000, 600000, 700000, 800000, 900000, 1000000, 1500000, 2000000, 3000000], "targetMax": 5000000, "dailyMax": 50000, "maxDays": 185, "maxPeriods": 120, "version": "30"};
+const TEXT = {"ja": {"wd": ["月", "火", "水", "木", "金", "土", "日"], "hol": "祝", "months": null, "langBtn": "EN", "today": "今日", "backup": "バックアップ", "restore": "復元", "refresh": "更新", "note": "記録はこのスマホの中に保存されます。機種変更の前に「バックアップ」で保存してください。", "saveFail": "保存できませんでした。プライベートブラウズを解除してください。", "planBase": "目標時間（基本）", "planOf": "目標時間（{p}）", "goal": "目標", "hoursU": "時間", "done": "達成", "unitL": "時間単位", "minU": "分", "todayC": "本日：", "thisDayC": "この日：", "left": "あと{n}分", "over": "+{n}分😁", "prevDay": "前の日", "nextDay": "次の日", "copyAria": "先週の同じ曜日の target をコピー", "copyNone": "先週の {d} には target（🟡）がありません。", "copyConfirm": "今の target（🟡）を、先週の {d} の内容に置き換えます。よろしいですか？", "dnote": "target をタップすると 🟡（予定）、real をタップすると 🔵（実施）になり、もう一度タップで ○ に戻ります。", "selPeriod": "期間の選択", "newPeriod": "＋新しい期間", "delPeriod": "削除", "delAria": "この期間を削除", "pno": "{n}回目", "pgoal": "目標:", "start": "start", "end": "end", "totalDays": "total days", "countdown": "countdown", "dayN": "day", "target": "target", "cdUnit": " day", "current": "現在：", "progTarget": "今日までの目標：", "dailyTarget": "1日の目標：", "todayGoal": "今日の目標→{w} {h} {c}", "actual": "実際の進捗", "targetBar": "目標の進捗", "planHead": "曜日別目標/実施時間/曜日合計目標", "calendar": "calendar", "time": "time", "count": "count", "total": "total", "tapRow": "日付をタップすると、その日の Daily を開きます。", "other": "手入力…", "badOrder": "start は end より前の日付にしてください。", "badRange": "日付は 2026/9/1〜2031/12/31 の範囲で選んでください。", "tooLong": "期間は最大185日までです。", "tmax": "target の上限は {m} です（1日あたり50,000 × 期間の日数、最大5,000,000）。", "tclamp": "期間の長さに合わせて、target を上限の {m} に変更しました。", "tprompt": "target を入力してください（上限 {m}）", "maxP": "期間は120回分まで登録できます。", "lastP": "期間が1つだけのときは削除できません。", "delConfirm": "{n}回目の期間を削除します。記録（Daily の入力）は消えません。よろしいですか？", "noRoom": "2031/12/31 より後の期間は追加できません。", "yearU": "年", "monthU": "月", "fromY": "開始の年", "fromM": "開始の月", "toY": "終了の年", "toM": "終了の月", "yBad": "開始の年月は、終了の年月より前にしてください。", "sDays": "total days：", "sTarget": "目標（按分）：", "sHours": "実施時間：", "sGoalH": "目標時間：", "zones": "時間帯別の実施時間", "wkHead": "曜日別実施時間/曜日合計目標", "plist": "範囲内の期間", "pnone": "この範囲に期間はありません。", "inRange": "範囲内：", "restoreConfirm": "バックアップの内容で、今の記録と設定をすべて置き換えます。バックアップを取った日より後に入力した記録は消えます。必要な場合は「キャンセル」を押して、先に今の状態をバックアップしてください。復元してよろしいですか？", "restorePeriods": "chant counter のバックアップから、期間（Period）の設定だけを取り込みます。今の期間の設定は置き換わります。Daily の記録はそのまま残ります。よろしいですか？", "restoreDays": "chant time のバックアップから、Daily の記録と設定を取り込みます。今の Daily の記録は置き換わります。期間（Period）の設定はそのまま残ります。よろしいですか？", "restored": "復元しました。", "badFile": "このファイルは読み込めません。バックアップで保存した .json ファイルを選んでください。", "gTitle": "ご利用にあたって", "gItems": ["このアプリはご招待した方専用です。URLやパスワードの共有、拡散はご遠慮ください。", "本アプリは無料で提供しており、動作や計算結果の正確さを保証するものではありません。ご利用はご自身の判断と責任でお願いいたします。", "本アプリの利用期間は、2026/9/1からとなります。終了期限は、2027/11/30を予定しています。その後は、予告なく終了する場合があります。", "記録はお使いのスマホの中にのみ保存され、外部に送信されることはありません。作成者が記録を見ることはできません。", "アプリの削除、Safariの履歴の消去、機種変更などにより、記録が失われることがあります。大切な記録は「バックアップ」で保存してください。", "目標を達成したときや月ごとの状況などは、画面のスクリーンショットで記録を残しておくこともできます。", "本アプリの内容は、予告なく変更または提供を終了する場合があります。", "本アプリの利用により生じた損害について、作成者は責任を負いかねます。", "個別のサポートは行っておりません。"], "gHint": "先にSafariの共有ボタンから「ホーム画面に追加」をして、ホーム画面のアイコンから開いたアプリでパスワードを入力してください。", "gLabel": "パスワード", "gBtn": "同意して始める", "gWrong": "パスワードが正しくありません。", "gClosed": "新規登録の受付は終了しました。", "gLimit": "パスワード入力制限オーバーです。", "xMsg": "{d} でこのアプリの使用期限が過ぎました。", "xSub": "記録は下のボタンでバックアップとして保存できます。", "bTitle": "データのバックアップと復元について", "bItems": ["記録はこのスマホの中にだけ保存されています。アプリの削除、Safariの履歴の消去、機種変更などで記録が失われることがあります。", "「バックアップ」を押すと、その時点のすべての記録と設定をファイルに保存できます。ファイルアプリに保存したり、自分宛てにメールやLINEで送ったりしておいてください。", "月末やアプリの更新の前など、区切りのときにバックアップを取っておくことをおすすめします。", "「復元」をすると、今の記録と設定は、バックアップの内容に丸ごと置き換わります。バックアップを取った日より後に入力した記録は消えます。", "復元する前に、今の状態もバックアップしておくと、元に戻せるので安心です。", "機種変更のときは、古いスマホでバックアップを取り、新しいスマホで「復元」してください。", "アプリが新しい版に更新される直前に、記録の控えを自動で残しています。更新後に記録がおかしくなったときは、下のボタンで更新前の状態に戻せます（更新から7日以内）。"], "snap": "更新前の控え：", "snapBtn": "この状態に戻す", "snapConfirm": "記録を {at}（更新前）の状態に戻します。\nこの後に入力した記録{n}は消えます。\n先に「バックアップ」を取ることをおすすめします。\nよろしいですか？", "snapDays": "（{n}日分）", "snapNone": "更新前の控えはまだありません。", "snapOld": "更新前の控えは、更新から7日以内だけ使えます。"}, "en": {"wd": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"], "hol": "Hol", "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], "langBtn": "日本語", "today": "Today", "backup": "Backup", "restore": "Restore", "refresh": "Refresh", "note": "Records are saved only on this phone. Use \"Backup\" before changing phones.", "saveFail": "Could not save. Please turn off Private Browsing.", "planBase": "Target time (base)", "planOf": "Target time ({p})", "goal": "Target", "hoursU": "h", "done": "Done", "unitL": "Unit", "minU": "min", "todayC": "Today: ", "thisDayC": "This day: ", "left": "{n} min left", "over": "+{n} min😁", "prevDay": "Previous day", "nextDay": "Next day", "copyAria": "Copy last week's target for the same weekday", "copyNone": "There is no target (🟡) on {d} last week.", "copyConfirm": "Replace the current target (🟡) with last week's {d}?", "dnote": "Tap target to mark 🟡 (plan), tap real to mark 🔵 (done). Tap again to return to ○.", "selPeriod": "Select period", "newPeriod": "+ New period", "delPeriod": "Delete", "delAria": "Delete this period", "pno": "Period {n}", "pgoal": "Target: ", "start": "Start:", "end": "End:", "totalDays": "Total days:", "countdown": "Countdown:", "dayN": "Day:", "target": "Target:", "cdUnit": "", "current": "Current: ", "progTarget": "Progress target: ", "dailyTarget": "1 day target: ", "todayGoal": "Today target: {w} {h} {c}", "actual": "Actual", "targetBar": "Target", "planHead": "Weekday target / Actual / Total target", "calendar": "Calendar", "time": "time", "count": "count", "total": "total", "tapRow": "Tap a date to open that day in Daily.", "other": "Other…", "badOrder": "Start must be on or before End.", "badRange": "Please choose dates between 2026/9/1 and 2031/12/31.", "tooLong": "A period can be up to 185 days.", "tmax": "The maximum target is {m} (50,000 per day × days in the period, up to 5,000,000).", "tclamp": "The target was changed to the maximum of {m} to fit the period length.", "tprompt": "Enter the target (max {m})", "maxP": "Up to 120 periods can be saved.", "lastP": "The only period cannot be deleted.", "delConfirm": "Delete Period {n}? Your records (Daily entries) will not be deleted.", "noRoom": "No period can be added after 2031/12/31.", "yearU": "Year", "monthU": "M", "fromY": "From year", "fromM": "From month", "toY": "To year", "toM": "To month", "yBad": "The start must be on or before the end.", "sDays": "Total days: ", "sTarget": "Target (prorated): ", "sHours": "Time done: ", "sGoalH": "Target time: ", "zones": "Time by time of day", "wkHead": "Actual by weekday / Total target", "plist": "Periods in this range", "pnone": "No periods in this range.", "inRange": "In range: ", "restoreConfirm": "Restoring replaces all current records and settings with the backup. Records entered after the backup was made will be lost. If needed, tap Cancel and back up the current state first. Do you want to restore?", "restorePeriods": "This is a chant counter backup. Only the period settings will be imported and will replace the current ones. Daily records stay as they are. Continue?", "restoreDays": "This is a chant time backup. Daily records and settings will be imported and will replace the current ones. Period settings stay as they are. Continue?", "restored": "Restored.", "badFile": "This file cannot be read. Please choose a .json file saved with Backup.", "gTitle": "Before you use this app", "gItems": ["This app is for invited guests only. Please do not share or spread the URL or password.", "This app is provided free of charge, without any guarantee of its operation or the accuracy of its calculations. Please use it at your own discretion and risk.", "This app is available from 2026/9/1. It is scheduled to end on 2027/11/30, and may end after that without notice.", "Your records are saved only on your phone and are never sent anywhere. The creator cannot see your records.", "Records may be lost if you delete the app, clear Safari's history, or change phones. Please use \"Backup\" to save important records.", "You can also keep a record by taking screenshots, for example when you reach your target or at the end of each month.", "The content of this app may be changed or discontinued without notice.", "The creator is not responsible for any damages arising from the use of this app.", "Individual support is not provided."], "gHint": "First add this app to your Home Screen (Safari share button → Add to Home Screen), then enter the password in the app opened from the Home Screen icon.", "gLabel": "Password", "gBtn": "Agree and start", "gWrong": "The password is incorrect.", "gClosed": "Registration for new users has closed.", "gLimit": "Too many incorrect attempts. Password entry is locked for today.", "xMsg": "This app's period of use ended on {d}.", "xSub": "You can still save your records with the button below.", "bTitle": "About data backup and restore", "bItems": ["Your records are saved only on this phone. They may be lost if you delete the app, clear Safari's history, or change phones.", "\"Backup\" saves all your records and settings at that moment to a file. Keep the file in the Files app, or send it to yourself by email or LINE.", "We recommend making a backup at milestones, such as the end of each month or before the app is updated.", "\"Restore\" replaces all current records and settings with the backup. Records entered after the backup was made will be lost.", "Before restoring, back up the current state as well, so you can go back to it if needed.", "When changing phones, make a backup on the old phone and use \"Restore\" on the new phone.", "The app also automatically keeps a copy of your records just before it is updated. If something goes wrong after an update, you can return to that copy below (available for 7 days after the update)."], "snap": "Copy before the last update: ", "snapBtn": "Return to this state", "snapConfirm": "Return the records to the state of {at} (before the update)?\nRecords entered after that{n} will be lost.\nWe recommend making a \"Backup\" first.", "snapDays": " ({n} days)", "snapNone": "There is no copy from before an update yet.", "snapOld": "The copy from before the update is only available for 7 days after the update."}};
+const KEY = "chant-time-v1";        // 今の chant time と同じ保存場所（記録をそのまま引き継ぐ）
+
+// ---- 言語（日本語／英語）----
+let LANG = "ja";
+try { LANG = localStorage.getItem(KEY + "-lang") || ((navigator.language || "ja").toLowerCase().startsWith("ja") ? "ja" : "en"); } catch(e) {}
+if (!TEXT[LANG]) LANG = "ja";
+document.documentElement.lang = LANG;
+const L = TEXT[LANG];
+const t = (k, o = {}) => String(L[k]).replace(/\{(\w+)\}/g, (_, x) => o[x]);
+const fmt = n => Math.round(n).toLocaleString(LANG === "ja" ? "ja-JP" : "en-US");
+function setLang(l){ try { localStorage.setItem(KEY + "-lang", l); } catch(e) {} location.reload(); }
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
 (function(){
@@ -288,160 +426,20 @@ const KEY = "chant-time-v1";
     localStorage.setItem(VKEY, CFG.version);
   } catch(e) {}
 })();
-const WD = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-const PLAN_ITEMS = [["mon","Mon"],["tue","Tue"],["wed","Wed"],["thu","Thu"],["fri","Fri"],["sat","Sat"],["sun","Sun"],["hol","Hol"]];
-const B = 5;   // 記録は5分刻みで保存（単位を変えても記録が残るように）
-
-// ---- 保存 ----
-// days: { "2026-10-01": { t:[5分ブロックの開始分...], r:[...] } }
-let state = { days:{}, plan:{...CFG.plan}, unit: CFG.unit };
-try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) state = { ...state, ...s, plan:{...CFG.plan, ...(s.plan||{})} }; } catch(e) {}
-function migrate(st){              // 旧版（20分ごとの on）からの変換
-  Object.entries(st.days || {}).forEach(([k,d]) => {
-    if (d && Array.isArray(d.on)) {
-      const r = []; d.on.forEach(m => { for (let x = m; x < m + 20; x += B) r.push(x); });
-      st.days[k] = { t: d.t || [], r };
-    }
-  });
-  delete st.goal; return st;
-}
-state = migrate(state);
-function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert("保存できませんでした。プライベートブラウズを解除してください。"); } }
-// iPhone：プルダウン（ドラム）を閉じた後に画面のずれを元に戻す
-document.addEventListener("focusout", e => {
-  if (e.target.matches && e.target.matches("select, input")) setTimeout(() => window.scrollTo(window.scrollX, window.scrollY), 50);
-});
-if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
 // ---- 日付 ----
 const pad = n => String(n).padStart(2,"0");
 const iso = d => d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
 const parse = s => new Date(Number(s.slice(0,4)), Number(s.slice(5,7))-1, Number(s.slice(8,10)));
-const todayISO = () => iso(new Date());
-const GATE = {
-  title: "ご利用にあたって",
-  items: [
-    "このアプリはご招待した方専用です。URLやパスワードの共有、拡散はご遠慮ください。",
-    "本アプリは無料で提供しており、動作や計算結果の正確さを保証するものではありません。ご利用はご自身の判断と責任でお願いいたします。",
-    "本アプリの利用期間は、2026/9/1からとなります。終了期限は、2027/11/30を予定しています。その後は、予告なく終了する場合があります。",
-    "記録はお使いのスマホの中にのみ保存され、外部に送信されることはありません。作成者が記録を見ることはできません。",
-    "アプリの削除、Safariの履歴の消去、機種変更などにより、記録が失われることがあります。大切な記録は「バックアップ」で保存してください。",
-    "目標を達成したときや月ごとの状況などは、画面のスクリーンショットで記録を残しておくこともできます。",
-    "本アプリの内容は、予告なく変更または提供を終了する場合があります。",
-    "本アプリの利用により生じた損害について、作成者は責任を負いかねます。",
-    "個別のサポートは行っておりません。",
-  ],
-  hint: "先にSafariの共有ボタンから「ホーム画面に追加」をして、ホーム画面のアイコンから開いたアプリでパスワードを入力してください。",
-  label: "パスワード", button: "同意して始める",
-  wrong: "パスワードが正しくありません。", closed: "新規登録の受付は終了しました。",
-  limit: "パスワード入力制限オーバーです。",
-  expired: d => d + " でこのアプリの使用期限が過ぎました。",
-  expiredSub: "記録は下のボタンでバックアップとして保存できます。",
-  expiredBtn: "バックアップ",
-};
-
-// ---- 初回のパスワード入力（受付期限つき）----
-(function(){
-  const fnv = str => { let h = 0x811c9dc5; for (const b of new TextEncoder().encode(str)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, "0"); };
-  const $ = id => document.getElementById(id);
-  const li = GATE.items.map(t => `<li>${t}</li>`).join("");
-  $("gTitle").textContent = GATE.title; $("nSum").textContent = GATE.title;
-  $("gList").innerHTML = li; $("nList").innerHTML = li;
-  $("gHint").textContent = GATE.hint; $("gLabel").textContent = GATE.label; $("gBtn").textContent = GATE.button;
-
-  // 使用期限（プレ期間の終了日）を過ぎたら、使えない画面を表示（バックアップだけはできる）
-  {
-    const n = new Date(), t = n.getFullYear() + "-" + String(n.getMonth()+1).padStart(2,"0") + "-" + String(n.getDate()).padStart(2,"0");
-    if (t > CFG.useEnd) {
-      const x = $("expired"); x.hidden = false; document.body.classList.add("locked");
-      $("xMsg").textContent = GATE.expired(CFG.useEnd.replace(/-/g, "/"));
-      $("xSub").textContent = GATE.expiredSub; $("xBtn").textContent = GATE.expiredBtn;
-      $("xBtn").addEventListener("click", () => { const b = document.getElementById("exportBtn"); if (b) b.click(); });
-      return;
-    }
-  }
-  const AKEY = KEY + "-auth";
-  let ok = false;
-  try {
-    ok = !!localStorage.getItem(AKEY);
-    // この更新の前から使っている人（記録が入っている人）は、そのまま使えるようにする
-    if (!ok) {
-      let has = false;
-      try { const o = JSON.parse(localStorage.getItem(KEY) || "null");
-            has = !!o && ((o.entries && Object.keys(o.entries).length > 0) || (o.days && Object.keys(o.days).length > 0)); } catch(e) {}
-      if (has) { localStorage.setItem(AKEY, JSON.stringify({ at: "existing" })); ok = true; }
-    }
-  } catch(e) {}
-  if (ok) return;
-  const gate = $("gate"); gate.hidden = false; document.body.classList.add("locked");
-  const d = new Date(), today = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
-  // その日（スマホの日付の「日」）のパスワードだけ受け付ける。REG_END を過ぎたら新規登録は終了
-  const open = today <= CFG.regEnd ? CFG.codes.filter(c => c.dom === d.getDate()) : [];
-  if (!open.length) { $("gErr").textContent = GATE.closed; $("gPass").disabled = true; $("gBtn").disabled = true; return; }
-  // 入力ミスの回数（その日のうちに6回まちがえると、7回目から入力できない。翌日にリセット）
-  const FKEY = KEY + "-fail";
-  const getFail = () => { try { const f = JSON.parse(localStorage.getItem(FKEY) || "null"); return f && f.date === today ? f.n : 0; } catch(e) { return 0; } };
-  const lockout = () => { $("gErr").textContent = GATE.limit; $("gPass").disabled = true; $("gBtn").disabled = true; };
-  if (getFail() >= 6) { lockout(); return; }
-  const tryPass = () => {
-    if (getFail() >= 6) { lockout(); return; }
-    const h = fnv("chant:" + $("gPass").value.trim());
-    if (!open.some(c => c.hash === h)) {
-      const n = getFail() + 1;
-      try { localStorage.setItem(FKEY, JSON.stringify({ date: today, n })); } catch(e) {}
-      $("gErr").textContent = GATE.wrong; return;
-    }
-    try { localStorage.setItem(AKEY, JSON.stringify({ at: today })); } catch(e) {}
-    gate.hidden = true; document.body.classList.remove("locked");
-    if (typeof jumpToday === "function") requestAnimationFrame(jumpToday);
-    if (typeof jumpNow === "function") requestAnimationFrame(jumpNow);
-  };
-  $("gBtn").addEventListener("click", tryPass);
-  $("gPass").addEventListener("keydown", e => { if (e.key === "Enter") tryPass(); });
-})();
-const BK = {
-  title: "データのバックアップと復元について",
-  items: [
-    "記録はこのスマホの中にだけ保存されています。アプリの削除、Safariの履歴の消去、機種変更などで記録が失われることがあります。",
-    "「バックアップ」を押すと、その時点のすべての記録と設定をファイルに保存できます。ファイルアプリに保存したり、自分宛てにメールやLINEで送ったりしておいてください。",
-    "月末やアプリの更新の前など、区切りのときにバックアップを取っておくことをおすすめします。",
-    "「復元」をすると、今の記録と設定は、バックアップの内容に丸ごと置き換わります。バックアップを取った日より後に入力した記録は消えます。",
-    "復元する前に、今の状態もバックアップしておくと、元に戻せるので安心です。",
-    "機種変更のときは、古いスマホでバックアップを取り、新しいスマホで「復元」してください。",
-    "アプリが新しい版に更新される直前に、記録の控えを自動で残しています。更新後に記録がおかしくなったときは、下のボタンで更新前の状態に戻せます（更新から7日以内）。",
-  ],
-  snap: "更新前の控え：", snapBtn: "この状態に戻す",
-  snapConfirm: (at, n) => "記録を " + at + "（更新前）の状態に戻します。\n" +
-    "この後に入力した記録" + (n > 0 ? "（" + n + "日分）" : "") + "は消えます。\n先に「バックアップ」を取ることをおすすめします。\nよろしいですか？",
-  snapNone: "更新前の控えはまだありません。",
-  snapOld: "更新前の控えは、更新から7日以内だけ使えます。",
-};
-
-// ---- データのバックアップと復元について（説明と、更新前の控えに戻すボタン）----
-(function(){
-  const $ = id => document.getElementById(id);
-  $("bSum").textContent = BK.title;
-  $("bList").innerHTML = BK.items.map(t => `<li>${t}</li>`).join("");
-  let snap = null;
-  try { snap = JSON.parse(localStorage.getItem(KEY + "-snap") || "null"); } catch(e) {}
-  const box = $("snapBox");
-  if (!snap) { box.textContent = BK.snapNone; return; }
-  // 控えの日時（古い控えは表示用の日時から計算）
-  const ts = snap.ts || (() => { const m = String(snap.at).match(/(\d+)\/(\d+)\/(\d+) (\d+):(\d+)/);
-    return m ? new Date(+m[1], m[2]-1, +m[3], +m[4], +m[5]).getTime() : Date.now(); })();
-  const d0 = new Date(ts), now = new Date();
-  const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d0.getFullYear(), d0.getMonth(), d0.getDate())) / 86400000);
-  if (days > 7) { box.textContent = BK.snapOld; return; }          // 更新から7日を過ぎたらボタンを表示しない
-  box.innerHTML = `<span>${BK.snap}${snap.at}</span><button id="snapBtn">${BK.snapBtn}</button>`;
-  $("snapBtn").addEventListener("click", () => {
-    if (!confirm(BK.snapConfirm(snap.at, days))) return;
-    try { localStorage.setItem(KEY, snap.data); } catch(e) {}
-    location.reload();
-  });
-})();
-let cur = todayISO();
-const day = () => state.days[cur] || { t:[], r:[] };
-const hm = m => (m % 1440 === 0 && m > 0 ? 0 : Math.floor(m/60)) + ":" + pad(m % 60);
+let today = iso(new Date());                       // 日付が変わったら更新する
+const md = s => Number(s.slice(5,7))+"/"+Number(s.slice(8));
+const ymdS = s => Number(s.slice(0,4)) + "/" + Number(s.slice(5,7)) + "/" + Number(s.slice(8));
+const dayDiff = (a,b) => Math.round((parse(b) - parse(a))/86400000);
+const wdMon = d => (d.getDay()+6)%7;
+const WKS = ["mon","tue","wed","thu","fri","sat","sun","hol"];
+const WKC = ["","","","","","sa","su","su"];
+const WKL = [...L.wd, L.hol];
+const hTxt = h => String(h).replace(/\.0$/,"") + "h";
 
 // ---- 日本の祝日（自動計算）----
 const holCache = {};
@@ -463,23 +461,207 @@ function holidaysOf(y){
   return holCache[y] = h;
 }
 const isHoliday = s => !!holidaysOf(Number(s.slice(0,4)))[s];
-const planKeyOf = s => isHoliday(s) ? "hol" : ["mon","tue","wed","thu","fri","sat","sun"][(parse(s).getDay()+6)%7];
+const wkKey = s => isHoliday(s) ? "hol" : WKS[wdMon(parse(s))];   // その日の目標時間の区分（祝日は「祝」）
 
-// ---- Target time（曜日ごと）----
-document.getElementById("plan").innerHTML = PLAN_ITEMS.map(([k,l]) =>
-  `<label data-k="${k}">${l}<select data-plan="${k}" aria-label="${l} の目標時間">${CFG.hours.map(h=>`<option value="${h}">${String(h).replace(/\.0$/,"")}h</option>`).join("")}</select></label>`).join("");
-document.querySelectorAll("select[data-plan]").forEach(sel => {
-  sel.value = String(state.plan[sel.dataset.plan]);
-  sel.addEventListener("change", () => { state.plan[sel.dataset.plan] = Number(sel.value); save(); render(); });
+// ---- 保存 ----
+// days: { "2026-10-01": { t:[5分ブロックの開始分...], r:[...] } }   ← Daily の記録（すべての元）
+// periods: [{ start, end, target, plan }]   plan: 曜日ごとの目標時間（時間）
+// plan: どの Period にも入らない日に使う基本の目標時間
+const B = 5;
+const fitPlan = h => CFG.hours.includes(h) ? h : (CFG.hours.find(x => x >= h) || CFG.hours[CFG.hours.length-1]);
+const cleanPlan = p => { const o = {...CFG.plan, ...(p || {})};
+  if (o.weh != null) { o.sat = o.sun = o.hol = o.weh; delete o.weh; }
+  WKS.forEach(k => o[k] = fitPlan(Number(o[k]))); Object.keys(o).forEach(k => { if (!WKS.includes(k)) delete o[k]; }); return o; };
+const newPeriod = (o = {}) => ({ start: o.start || CFG.start, end: o.end || CFG.end,
+  target: o.target || (o.targetMan ? o.targetMan * 10000 : CFG.target), plan: cleanPlan(o.plan) });
+function migrateDays(days){             // 旧版（20分ごとの on）からの変換
+  const out = {};
+  Object.entries(days || {}).forEach(([k,d]) => {
+    if (!d) return;
+    if (Array.isArray(d.on)) { const r = []; d.on.forEach(m => { for (let x = m; x < m + 20; x += B) r.push(x); }); out[k] = { t: d.t || [], r }; }
+    else out[k] = { t: Array.isArray(d.t) ? d.t : [], r: Array.isArray(d.r) ? d.r : [] };
+  });
+  return out;
+}
+function normalize(s){
+  s = s || {};
+  const plan = cleanPlan(s.plan);
+  let periods = Array.isArray(s.periods) && s.periods.length ? s.periods.map(newPeriod) : [newPeriod({ plan })];
+  periods = periods.slice(0, CFG.maxPeriods);
+  let cur = Number(s.cur); if (!(cur >= 0 && cur < periods.length)) cur = periods.length - 1;
+  return { days: migrateDays(s.days), plan, unit: CFG.units.includes(Number(s.unit)) ? Number(s.unit) : CFG.unit, periods, cur };
+}
+let state = normalize(null);
+try { const s = JSON.parse(localStorage.getItem(KEY)); if (s) { state = normalize(s); if (!Array.isArray(s.periods)) localStorage.setItem(KEY, JSON.stringify(state)); } } catch(e) {}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){ alert(t("saveFail")); } }
+const P = () => state.periods[state.cur];
+// iPhone：プルダウン（ドラム）を閉じた後に画面のずれを元に戻す
+document.addEventListener("focusout", e => {
+  if (e.target.matches && e.target.matches("select, input")) setTimeout(() => window.scrollTo(window.scrollX, window.scrollY), 50);
 });
+if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
-// ---- 時間単位 ----
+// ---- 計算のもと ----
+const minOf = date => ((state.days[date] && state.days[date].r) || []).length * B;      // その日の実施時間（分）
+const countOf = m => !m ? 0 : (CFG.countTable[m] != null ? CFG.countTable[m] : Math.round(m / 60 * CFG.perHour));
+const minTxt = m => !m ? "—" : m < 60 ? m + "m" : (m % 30 === 0 ? hTxt(m / 60) : Math.floor(m / 60) + "h" + (m % 60) + "m");
+// その日の目標時間：表示中の Period → その日を含む Period → 基本の目標時間
+function periodAt(date){
+  if (P() && date >= P().start && date <= P().end) return state.cur;
+  return state.periods.findIndex(p => date >= p.start && date <= p.end);
+}
+const planFor = date => { const i = periodAt(date); return i >= 0 ? state.periods[i].plan : state.plan; };
+
+// ---- 画面の文字を入れる ----
+document.querySelectorAll("[data-i]").forEach(el => el.textContent = t(el.dataset.i));
+document.querySelectorAll("[data-ia]").forEach(el => el.setAttribute("aria-label", t(el.dataset.ia)));
+document.querySelectorAll(".langBtn").forEach(b => b.addEventListener("click", () => setLang(LANG === "ja" ? "en" : "ja")));
+
+// ---- バックアップ（期限切れの画面からも使う）----
+async function doBackup(){
+  const name = "chant_backup_" + today + ".json";
+  const file = new File([JSON.stringify(state)], name, {type:"application/json"});
+  if (navigator.canShare && navigator.canShare({files:[file]})) {
+    try { await navigator.share({files:[file], title:name}); return; } catch(e) { if (e.name === "AbortError") return; }
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+// ---- 初回のパスワード入力（受付期限つき）・使用期限 ----
+(function(){
+  const fnv = str => { let h = 0x811c9dc5; for (const b of new TextEncoder().encode(str)) { h ^= b; h = Math.imul(h, 0x01000193) >>> 0; } return h.toString(16).padStart(8, "0"); };
+  const $ = id => document.getElementById(id);
+  const li = L.gItems.map(x => `<li>${x}</li>`).join("");
+  $("gTitle").textContent = t("gTitle"); $("nSum").textContent = t("gTitle");
+  $("gList").innerHTML = li; $("nList").innerHTML = li;
+  $("gHint").textContent = t("gHint"); $("gLabel").textContent = t("gLabel"); $("gBtn").textContent = t("gBtn");
+  // 使用期限を過ぎたら、使えない画面を表示（バックアップだけはできる）
+  if (today > CFG.useEnd) {
+    $("expired").hidden = false; document.body.classList.add("locked");
+    $("xMsg").textContent = t("xMsg", { d: CFG.useEnd.replace(/-/g, "/") });
+    $("xSub").textContent = t("xSub"); $("xBtn").textContent = t("backup");
+    $("xBtn").addEventListener("click", doBackup);
+    return;
+  }
+  const AKEY = KEY + "-auth";
+  let ok = false;
+  try {
+    ok = !!localStorage.getItem(AKEY);
+    // この更新の前から使っている人（記録が入っている人）は、そのまま使えるようにする
+    if (!ok) {
+      let has = false;
+      try { const o = JSON.parse(localStorage.getItem(KEY) || "null");
+            has = !!o && ((o.entries && Object.keys(o.entries).length > 0) || (o.days && Object.keys(o.days).length > 0)); } catch(e) {}
+      if (has) { localStorage.setItem(AKEY, JSON.stringify({ at: "existing" })); ok = true; }
+    }
+  } catch(e) {}
+  if (ok) return;
+  const gate = $("gate"); gate.hidden = false; document.body.classList.add("locked");
+  const d = new Date();
+  // その日（スマホの日付の「日」）のパスワードだけ受け付ける。受付期限を過ぎたら新規登録は終了
+  const open = today <= CFG.regEnd ? CFG.codes.filter(c => c.dom === d.getDate()) : [];
+  if (!open.length) { $("gErr").textContent = t("gClosed"); $("gPass").disabled = true; $("gBtn").disabled = true; return; }
+  // 入力ミスの回数（その日のうちに6回まちがえると、7回目から入力できない。翌日にリセット）
+  const FKEY = KEY + "-fail";
+  const getFail = () => { try { const f = JSON.parse(localStorage.getItem(FKEY) || "null"); return f && f.date === today ? f.n : 0; } catch(e) { return 0; } };
+  const lockout = () => { $("gErr").textContent = t("gLimit"); $("gPass").disabled = true; $("gBtn").disabled = true; };
+  if (getFail() >= 6) { lockout(); return; }
+  const tryPass = () => {
+    if (getFail() >= 6) { lockout(); return; }
+    const h = fnv("chant:" + $("gPass").value.trim());
+    if (!open.some(c => c.hash === h)) {
+      try { localStorage.setItem(FKEY, JSON.stringify({ date: today, n: getFail() + 1 })); } catch(e) {}
+      $("gErr").textContent = t("gWrong"); return;
+    }
+    try { localStorage.setItem(AKEY, JSON.stringify({ at: today })); } catch(e) {}
+    gate.hidden = true; document.body.classList.remove("locked");
+    requestAnimationFrame(() => jumpNow());
+  };
+  $("gBtn").addEventListener("click", tryPass);
+  $("gPass").addEventListener("keydown", e => { if (e.key === "Enter") tryPass(); });
+})();
+
+// ---- データのバックアップと復元について（説明と、更新前の控えに戻すボタン）----
+(function(){
+  const $ = id => document.getElementById(id);
+  $("bSum").textContent = t("bTitle");
+  $("bList").innerHTML = L.bItems.map(x => `<li>${x}</li>`).join("");
+  let snap = null;
+  try { snap = JSON.parse(localStorage.getItem(KEY + "-snap") || "null"); } catch(e) {}
+  const box = $("snapBox");
+  if (!snap) { box.textContent = t("snapNone"); return; }
+  const ts = snap.ts || (() => { const m = String(snap.at).match(/(\d+)\/(\d+)\/(\d+) (\d+):(\d+)/);
+    return m ? new Date(+m[1], m[2]-1, +m[3], +m[4], +m[5]).getTime() : Date.now(); })();
+  const d0 = new Date(ts), now = new Date();
+  const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()) - new Date(d0.getFullYear(), d0.getMonth(), d0.getDate())) / 86400000);
+  if (days > 7) { box.textContent = t("snapOld"); return; }          // 更新から7日を過ぎたらボタンを表示しない
+  box.innerHTML = `<span>${t("snap")}${snap.at}</span><button id="snapBtn">${t("snapBtn")}</button>`;
+  $("snapBtn").addEventListener("click", () => {
+    if (!confirm(t("snapConfirm", { at: snap.at, n: days > 0 ? t("snapDays", { n: days }) : "" }))) return;
+    try { localStorage.setItem(KEY, snap.data); } catch(e) {}
+    location.reload();
+  });
+})();
+
+// ---- 目標時間のプルダウン（Daily・Period 共通の作り）----
+function planSelectsHtml(attr){
+  return WKS.map((k, i) => `<label class="${WKC[i]}" data-k="${k}">${WKL[i]}<select ${attr}="${k}" aria-label="${WKL[i]}">` +
+    CFG.hours.map(h => `<option value="${h}">${hTxt(h)}</option>`).join("") + `</select></label>`).join("");
+}
+// 曜日別の実施時間・合計目標（planOf(date) はその日の目標時間）
+const hW = m => { const h = m / 60; return (h >= 100 ? Math.round(h) : Math.round(h * 10) / 10) + "h"; };
+function wkGridHtml(dates, planOf, noLabels){
+  const act = {}, tgt = {}; WKS.forEach(k => { act[k] = 0; tgt[k] = 0; });
+  dates.forEach(date => { const k = wkKey(date); act[k] += minOf(date); tgt[k] += Math.round((planOf(date)[k] || 0) * 60); });
+  // 1,000時間を超える長い集計のときは、月〜木／金〜祝の2段に分けて表示
+  const two = !noLabels && WKS.some(k => act[k] >= 60000 || tgt[k] >= 60000);
+  let h = "";
+  (two ? [[0,3],[4,7]] : [[0,7]]).forEach(([a,b]) => {
+    const ks = WKS.slice(a, b + 1);
+    if (!noLabels) h += ks.map((k, i) => `<span class="${WKC[a+i]}">${WKL[a+i]}</span>`).join("");
+    h += ks.map(k => `<b class="${act[k] ? "" : "z"}">${hW(act[k])}</b>`).join("");
+    h += ks.map(k => `<i>${hW(tgt[k])}</i>`).join("");
+  });
+  return `<div class="wkg" style="grid-template-columns:repeat(${two ? 4 : 8},minmax(0,1fr))">${h}</div>`;
+}
+// 1day.time count：0.5h・1h・1.5h・2h・3h…9h・10h~ に切り捨てで分類（30分未満は数えない）
+const TCB = ["0.5h","1h","1.5h","2h","3h","4h","5h","6h","7h","8h","9h","10h~"];
+function tcGridHtml(dates){
+  const tc = Array(TCB.length).fill(0);
+  dates.forEach(date => { const m = minOf(date); if (m >= 30) tc[m < 60 ? 0 : m < 90 ? 1 : m < 120 ? 2 : m < 600 ? Math.floor(m / 60) + 1 : 11]++; });
+  let h = "";
+  [[0,5],[6,11]].forEach(([a,b]) => {
+    for (let k = a; k <= b; k++) h += `<span>${TCB[k]}</span>`;
+    for (let k = a; k <= b; k++) h += `<b class="${tc[k] ? "" : "z"}">${tc[k]}</b>`;
+  });
+  return h;
+}
+function setTrack(id, pct){
+  [[0,30],[30,60],[60,90],[90,100]].forEach(([a,b], k) => {
+    const seg = document.querySelectorAll(`#${id} .seg`)[k];
+    const w = Math.max(0, Math.min(1, (pct - a) / (b - a)));
+    seg.querySelector("i").style.width = (w*100) + "%";
+    seg.classList.toggle("done", w >= 1);
+  });
+}
+
+// =====================================================================
+// Daily（時間割で🟡🔵を付ける。すべての記録の元）
+// =====================================================================
+let cur = today;
+const day = () => state.days[cur] || { t:[], r:[] };
+const hm = m => (m % 1440 === 0 && m > 0 ? 0 : Math.floor(m/60)) + ":" + pad(m % 60);
+document.getElementById("dPlan").innerHTML = planSelectsHtml("data-dplan");
+document.querySelectorAll("select[data-dplan]").forEach(sel => sel.addEventListener("change", () => {
+  planFor(cur)[sel.dataset.dplan] = Number(sel.value); save(); render();
+}));
 const unitSel = document.getElementById("unit");
 unitSel.innerHTML = CFG.units.map(u => `<option value="${u}">${u}</option>`).join("");
 unitSel.value = String(state.unit);
 unitSel.addEventListener("change", () => { state.unit = Number(unitSel.value); save(); buildList(); render(); });
 
-// ---- 時間割 ----
 let SLOTS = [];
 function buildList(){
   const u = state.unit; SLOTS = [];
@@ -492,15 +674,17 @@ function buildList(){
 const blocksOf = m => { const a = []; for (let x = m; x < Math.min(m + state.unit, CFG.dayEnd); x += B) a.push(x); return a; };
 
 function render(){
-  const d = parse(cur), wd = (d.getDay()+6)%7, hol = isHoliday(cur);
+  const d = parse(cur), wd = wdMon(d), hol = isHoliday(cur);
   document.getElementById("dateTitle").innerHTML =
-    `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}<small class="${hol||wd===6?"w6":wd===5?"w5":""}">${WD[wd]}${hol?" Hol":""}</small>`;
-  const pk = planKeyOf(cur);
-  document.querySelectorAll(".plan label").forEach(l => l.classList.toggle("today", l.dataset.k === pk));
-  const goalH = state.plan[pk], goalMin = Math.round(goalH * 60);
+    `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())}<small class="${hol||wd===6?"w6":wd===5?"w5":""}">${L.wd[wd]}${hol?" "+L.hol:""}</small>`;
+  // 目標時間の枠：この日を含む Period の目標時間（なければ基本の目標時間）
+  const pi = periodAt(cur), plan = planFor(cur), pk = wkKey(cur);
+  document.getElementById("dPlanH").textContent = pi >= 0 ? t("planOf", { p: t("pno", { n: pi + 1 }) }) : t("planBase");
+  document.querySelectorAll("select[data-dplan]").forEach(s => s.value = String(plan[s.dataset.dplan]));
+  document.querySelectorAll("#dPlan label").forEach(l => l.classList.toggle("today", l.dataset.k === pk));
+  const goalH = plan[pk], goalMin = Math.round(goalH * 60);
   const dd = day(), T = new Set(dd.t), Rr = new Set(dd.r);
-  const doneMin = Rr.size * B;
-  const diff = doneMin - goalMin;
+  const doneMin = Rr.size * B, diff = doneMin - goalMin;
   document.getElementById("goalH").textContent = goalH.toFixed(1);
   document.getElementById("goalMin").textContent = "（" + goalMin + "）";
   document.getElementById("doneH").textContent = (doneMin/60).toFixed(1);
@@ -509,17 +693,15 @@ function render(){
   // 達成したら月ごとの絵文字（表示している日の月）。超えた分も表示
   const EMO = ["🎽","⛄️","🌸","🌷","🎏","☀️","🏄","🌻","🌕","🌰","🍁","⛷️"];
   const emo = `<span class="emo">${EMO[d.getMonth()]}</span>`;
-  df.innerHTML = diff < 0 ? "あと" + (-diff) + "分" : diff > 0 ? emo + " +" + diff + "分😁" : emo;   // ちょうど達成は絵文字だけ
+  df.innerHTML = diff < 0 ? t("left", { n: -diff }) : diff > 0 ? emo + " " + t("over", { n: diff }) : emo;
   df.className = "diff " + (diff < 0 ? "minus" : diff > 0 ? "plus" : "zero");
-  // 実施時間 × 3,400回/1時間
-  document.getElementById("chants").innerHTML =
-    `<small>${cur === todayISO() ? "本日" : "この日"}：</small>${Math.round(doneMin/60*CFG.perHour).toLocaleString("ja-JP")} chants ${(doneMin/60).toFixed(1).replace(/\.0$/,"")}h`;
-  document.getElementById("barFill").style.width = Math.min(100, goalMin ? doneMin/goalMin*100 : 0) + "%";
-
+  document.getElementById("dChants").innerHTML =
+    `<small>${cur === today ? t("todayC") : t("thisDayC")}</small>${fmt(countOf(doneMin))} chants ${(doneMin/60).toFixed(1).replace(/\.0$/,"")}h`;
+  document.getElementById("dBarFill").style.width = Math.min(100, goalMin ? doneMin/goalMin*100 : 0) + "%";
   // target の個数：目標時間 ÷ 時間単位
   const need = Math.ceil(goalMin / state.unit);
   let picked = 0;
-  const now = new Date(), nowM = now.getHours()*60 + now.getMinutes(), isToday = cur === todayISO();
+  const now = new Date(), nowM = now.getHours()*60 + now.getMinutes(), isToday = cur === today;
   document.querySelectorAll(".slot").forEach(row => {
     const m = Number(row.dataset.m), bl = blocksOf(m);
     [["t",T],["r",Rr]].forEach(([k,set]) => {
@@ -530,11 +712,8 @@ function render(){
     });
     row.classList.toggle("now", isToday && nowM >= m && nowM < m + state.unit);
   });
-  const th = document.getElementById("tHdr");
-  th.innerHTML = `target:<b>${need}</b><br><span class="${picked===need?"ok":picked>need?"over":""}">${picked}/${need}</span>`;
+  document.getElementById("tHdr").innerHTML = `target:<b>${need}</b><br><span class="${picked===need?"ok":picked>need?"over":""}">${picked}/${need}</span>`;
 }
-
-// ---- 操作 ----
 document.getElementById("list").addEventListener("click", e => {
   const c = e.target.closest(".cell"); if (!c) return;
   const k = c.dataset.k, bl = blocksOf(Number(c.dataset.m));
@@ -544,21 +723,191 @@ document.getElementById("list").addEventListener("click", e => {
   state.days[cur] = { t: dd.t, r: dd.r, [k]: [...set].sort((a,b)=>a-b) };
   save(); render();
 });
-// ---- copy：先週の同じ曜日の target（🟡）を、表示中の日にコピー ----
+// L.W copy：先週の同じ曜日の target（🟡）を、表示中の日にコピー
 document.getElementById("copyBtn").addEventListener("click", () => {
   const d = parse(cur); d.setDate(d.getDate() - 7);
-  const src = state.days[iso(d)], wd = ["月","火","水","木","金","土","日"][(d.getDay()+6)%7];
-  const label = `${d.getMonth()+1}/${d.getDate()}（${wd}）`;
-  if (!src || !src.t || !src.t.length) { alert(`先週の ${label} には target（🟡）がありません。`); return; }
+  const src = state.days[iso(d)];
+  const label = LANG === "ja" ? `${d.getMonth()+1}/${d.getDate()}（${L.wd[wdMon(d)]}）` : `${L.wd[wdMon(d)]} ${d.getMonth()+1}/${d.getDate()}`;
+  if (!src || !src.t || !src.t.length) { alert(t("copyNone", { d: label })); return; }
   const dd = day();
-  if (dd.t.length && !confirm(`今の target（🟡）を、先週の ${label} の内容に置き換えます。よろしいですか？`)) return;
+  if (dd.t.length && !confirm(t("copyConfirm", { d: label }))) return;
   state.days[cur] = { t: [...src.t], r: dd.r };
   save(); render();
 });
-function move(n){ const d = parse(cur); d.setDate(d.getDate()+n); const t = iso(d); if (t < CFG.dateMin || t > CFG.dateMax) return; cur = t; render(); }
+function move(n){ const d = parse(cur); d.setDate(d.getDate()+n); const s = iso(d); if (s < CFG.dateMin || s > CFG.dateMax) return; cur = s; render(); }
 document.getElementById("prev").addEventListener("click", () => move(-1));
 document.getElementById("next").addEventListener("click", () => move(1));
-// ---- 集計（年・月の範囲で集計）----
+function jumpNow(){
+  cur = today; render();
+  const el = document.querySelector(".slot.now") || document.querySelector(".slot");
+  const top = el.getBoundingClientRect().top + window.scrollY - document.querySelector(".head").offsetHeight - 60;
+  window.scrollTo({ top: Math.max(0, top) });
+}
+document.getElementById("dTodayBtn").addEventListener("click", jumpNow);
+
+// =====================================================================
+// Period（期間ごとの target と進み具合。time は Daily の🔵の合計）
+// =====================================================================
+let DAYS = [];
+function makeDays(){
+  DAYS = [];
+  const d = parse(P().start), e = parse(P().end);
+  while (d <= e) { const s = iso(d); DAYS.push([s, wdMon(d), isHoliday(s)]); d.setDate(d.getDate()+1); }
+}
+const startIn = document.getElementById("start"), endIn = document.getElementById("end");
+function changePeriod(){
+  const s = startIn.value, e = endIn.value;
+  const reset = () => { startIn.value = P().start; endIn.value = P().end; };
+  if (!s || !e) return reset();
+  if (s > e) { alert(t("badOrder")); return reset(); }
+  if (s < CFG.dateMin || e > CFG.dateMax) { alert(t("badRange")); return reset(); }
+  if (dayDiff(s,e) + 1 > CFG.maxDays) { alert(t("tooLong")); return reset(); }
+  P().start = s; P().end = e; clampTarget(true); save(); buildRows(); refresh();
+}
+startIn.addEventListener("change", changePeriod);
+endIn.addEventListener("change", changePeriod);
+// target（プルダウン＋手入力、上限 = min(50,000 × 日数, 5,000,000)）
+const tSel = document.getElementById("targetSel");
+const targetMax = () => Math.min(CFG.targetMax, CFG.dailyMax * (dayDiff(P().start, P().end) + 1));
+function showTarget(){
+  const max = targetMax(), tg = P().target;
+  const list = CFG.targets.includes(tg) ? CFG.targets : [...CFG.targets, tg].sort((a,b) => a - b);
+  tSel.innerHTML = list.map(v => `<option value="${v}" ${v > max ? "disabled" : ""}>${fmt(v)}</option>`).join("") + `<option value="other">${t("other")}</option>`;
+  tSel.value = String(tg);
+}
+function clampTarget(notify){
+  const max = targetMax();
+  if (P().target > max) { P().target = max; if (notify) alert(t("tclamp", { m: fmt(max) })); }
+}
+tSel.addEventListener("change", () => {
+  if (tSel.value === "other") {
+    const max = targetMax();
+    const ans = prompt(t("tprompt", { m: fmt(max) }), String(P().target));
+    const v = ans == null ? 0 : Number(String(ans).replace(/[^0-9]/g, ""));
+    if (v > 0) { if (v > max) alert(t("tmax", { m: fmt(max) })); P().target = Math.min(v, max); save(); refresh(); }
+    showTarget(); return;
+  }
+  P().target = Number(tSel.value); save(); showTarget(); refresh();
+});
+document.getElementById("pPlan").innerHTML = planSelectsHtml("data-pplan");
+document.querySelectorAll("select[data-pplan]").forEach(s => s.addEventListener("change", () => {
+  P().plan[s.dataset.pplan] = Number(s.value); save(); refresh();
+}));
+function syncInputs(){
+  startIn.value = P().start; endIn.value = P().end; clampTarget(false); showTarget();
+  document.querySelectorAll("select[data-pplan]").forEach(x => x.value = String(P().plan[x.dataset.pplan]));
+}
+// 表（カレンダー）
+const LEGEND = `<span class="legend"><span style="--sw:var(--bg-low)">30%−</span><span style="--sw:var(--bg-b)">10%+</span><span style="--sw:var(--bg-y)">20%+</span><span style="--sw:var(--bg-r)">30%+</span></span>`;
+const monthName = mk => LANG === "ja" ? `${Number(mk.slice(0,4))}年${Number(mk.slice(5))}月` : `${L.months[Number(mk.slice(5))-1]} ${mk.slice(0,4)}`;
+function buildRows(){
+  makeDays();
+  let html = "", lastMonth = "";
+  DAYS.forEach(([date, wd, hol]) => {
+    const mk = date.slice(0,7);
+    if (mk !== lastMonth){ lastMonth = mk; html += `<tr class="month"><td colspan="4"><div class="mrow"><span>${monthName(mk)}</span>${LEGEND}</div></td></tr>`; }
+    const cls = hol ? "hol" : wd===5 ? "w5" : wd===6 ? "w6" : "";
+    html += `<tr class="d ${date===today?"today":""}" id="r${date}" data-date="${date}">
+      <td class="${cls}">${md(date)}<span class="dw">${L.wd[wd]}${hol?(LANG==="ja"?"":" ")+L.hol:""}</span></td>
+      <td class="tm" id="m${date}"></td><td id="c${date}"></td><td class="tot" id="t${date}"></td></tr>`;
+  });
+  document.getElementById("rows").innerHTML = html;
+}
+function refresh(){
+  const totalDays = DAYS.length;
+  const daily = P().target / Math.max(1, totalDays);
+  let total = 0, current = 0;
+  DAYS.forEach((d, i) => {
+    const date = d[0], m = minOf(date), c = countOf(m);
+    total += c; if (date <= today) current = total;
+    const mc = document.getElementById("m"+date); mc.textContent = minTxt(m); mc.classList.toggle("z", !m);
+    document.getElementById("c"+date).textContent = m ? fmt(c) : "";
+    const tc = document.getElementById("t"+date);
+    tc.className = "tot";
+    if (date <= today) {
+      tc.textContent = fmt(total);
+      const r = total / (daily * (i+1));
+      tc.classList.add(r < 0.7 ? "low" : r > 1.3 ? "or" : r > 1.2 ? "oy" : r > 1.1 ? "ob" : "x");
+    } else tc.textContent = "";
+  });
+  if (today < P().start) current = 0;
+  const elapsed = Math.max(0, Math.min(totalDays, dayDiff(P().start, today) + 1));
+  const prog = daily * elapsed;
+  document.getElementById("elapsedDay").textContent = elapsed;
+  document.getElementById("totalDays").textContent = totalDays;
+  document.getElementById("countdown").textContent = Math.max(0, totalDays - elapsed) + t("cdUnit");
+  document.getElementById("pCurrent").textContent = fmt(current);
+  document.getElementById("pProg").textContent = fmt(prog);
+  document.getElementById("pDaily").textContent = fmt(daily);
+  document.getElementById("pPct").textContent = prog > 0 ? Math.round(current / prog * 100) + "%" : "–";
+  const tk = wkKey(today), th = planFor(today)[tk];
+  document.getElementById("pTodayGoal").textContent = t("todayGoal", { w: WKL[WKS.indexOf(tk)], h: hTxt(th), c: fmt(countOf(Math.round(th * 60))) });
+  setTrack("pTrack", current / P().target * 100);
+  document.getElementById("pTfill").style.width = Math.min(100, prog / P().target * 100) + "%";
+  document.getElementById("pScaleMax").textContent = fmt(P().target);
+  const dates = DAYS.map(d => d[0]);
+  document.getElementById("pWk").innerHTML = wkGridHtml(dates, () => P().plan, true);
+  document.getElementById("pTc").innerHTML = tcGridHtml(dates);
+  renderPeriods();
+}
+// 日付の行をタップすると、その日の Daily を開く
+document.getElementById("rows").addEventListener("click", e => {
+  const r = e.target.closest("tr.d"); if (!r) return;
+  cur = r.dataset.date; showView("D");
+});
+function jumpToday(){
+  if (!DAYS.length) return;
+  const first = DAYS[0][0], last = DAYS[DAYS.length-1][0];
+  const s = today < first ? first : today > last ? last : today;
+  // 今日の2日前の行が、表の見出しのすぐ下に来るように表示
+  const idx = DAYS.findIndex(d => d[0] === s);
+  const row = document.getElementById("r" + DAYS[Math.max(0, idx - 2)][0]);
+  if (!row) return;
+  const thead = document.querySelector("#viewP thead");
+  window.scrollTo({ top: Math.max(0, row.getBoundingClientRect().top + window.scrollY - thead.offsetHeight) });
+  requestAnimationFrame(() => {
+    const gap = row.getBoundingClientRect().top - thead.querySelector("th").getBoundingClientRect().bottom;
+    if (Math.abs(gap) > 1) window.scrollBy(0, gap);
+  });
+}
+document.getElementById("pTodayBtn").addEventListener("click", jumpToday);
+// 期間の切り替え・追加・削除
+function periodSum(p){
+  let s = 0;
+  for (let d = parse(p.start); iso(d) <= p.end && iso(d) <= today; d.setDate(d.getDate()+1)) s += countOf(minOf(iso(d)));
+  return s;
+}
+function renderPeriods(){
+  const sel = document.getElementById("periodSel");
+  sel.innerHTML = state.periods.map((p,i) => `<option value="${i}">${t("pno", { n: i + 1 })} ${ymdS(p.start)}〜${ymdS(p.end)}</option>`).join("");
+  sel.value = String(state.cur);
+  const p = P(), sum = periodSum(p), pc = p.target ? Math.round(sum / p.target * 100) : 0;
+  document.getElementById("pSum").innerHTML = `${t("pgoal")}${fmt(p.target)}<br>${fmt(sum)} chants　<b>${pc}%</b>`;
+}
+function switchPeriod(i){ state.cur = i; save(); syncInputs(); buildRows(); refresh(); }
+document.getElementById("periodSel").addEventListener("change", e => switchPeriod(Number(e.target.value)));
+document.getElementById("addPeriod").addEventListener("click", () => {
+  if (state.periods.length >= CFG.maxPeriods) { alert(t("maxP")); return; }
+  const last = state.periods.reduce((a,p) => p.end > a.end ? p : a);
+  const s = parse(last.end); s.setDate(s.getDate() + 1);
+  if (iso(s) > CFG.dateMax) { alert(t("noRoom")); return; }
+  const e = new Date(s); e.setDate(e.getDate() + Math.min(CFG.maxDays - 1, Math.max(0, dayDiff(last.start, last.end))));
+  const end = iso(e) > CFG.dateMax ? CFG.dateMax : iso(e);
+  const np = newPeriod({ start: iso(s), end, target: P().target, plan: {...P().plan} });
+  np.target = Math.min(np.target, Math.min(CFG.targetMax, CFG.dailyMax * (dayDiff(np.start, np.end) + 1)));
+  state.periods.push(np);
+  switchPeriod(state.periods.length - 1);
+});
+document.getElementById("delPeriod").addEventListener("click", () => {
+  if (state.periods.length <= 1) { alert(t("lastP")); return; }
+  if (!confirm(t("delConfirm", { n: state.cur + 1 }))) return;
+  state.periods.splice(state.cur, 1);
+  switchPeriod(Math.min(state.cur, state.periods.length - 1));
+});
+
+// =====================================================================
+// Summary（年・月の範囲で集計）
+// =====================================================================
 const sFromY = document.getElementById("sFromY"), sFromM = document.getElementById("sFromM");
 const sToY = document.getElementById("sToY"), sToM = document.getElementById("sToM");
 (function(){
@@ -567,7 +916,7 @@ const sToY = document.getElementById("sToY"), sToM = document.getElementById("sT
   const mo = Array.from({length: 12}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join("");
   sFromY.innerHTML = yo; sToY.innerHTML = yo; sFromM.innerHTML = mo; sToM.innerHTML = mo;
   let r = null; try { r = JSON.parse(localStorage.getItem(KEY + "-sr") || "null"); } catch(e) {}
-  const ty = Math.min(y1, Math.max(y0, new Date().getFullYear()));
+  const ty = Math.min(y1, Math.max(y0, Number(today.slice(0,4))));
   r = r || { fy: ty, fm: 1, ty: ty, tm: 12 };
   sFromY.value = r.fy; sFromM.value = r.fm; sToY.value = r.ty; sToM.value = r.tm;
 })();
@@ -577,104 +926,108 @@ const sToY = document.getElementById("sToY"), sToM = document.getElementById("sT
 }));
 const hS = m => (m / 60).toFixed(1).replace(/\.0$/, "") + "h";
 function renderSummary(){
+  const $ = id => document.getElementById(id);
   const rs = sFromY.value + "-" + pad(+sFromM.value) + "-01";
   const re = iso(new Date(+sToY.value, +sToM.value, 0));          // 終了月の月末
-  const $ = id => document.getElementById(id);
-  if (rs > re) { $("sSpan").textContent = "開始の年月は、終了の年月より前にしてください。"; return; }
-  $("sSpan").textContent = rs.replace(/-0?/g, "/") + " 〜 " + re.replace(/-0?/g, "/");
+  if (rs > re) { $("sSpan").textContent = t("yBad"); return; }
+  $("sSpan").textContent = ymdS(rs) + " 〜 " + ymdS(re);
+  const dates = []; for (let d = parse(rs); iso(d) <= re; d.setDate(d.getDate()+1)) dates.push(iso(d));
+  // 実績（chants は今日まで）・実施時間・目標時間・時間帯別
   const ZONES = [["0:00〜5:00", 0, 300], ["5:00〜12:00", 300, 720], ["12:00〜18:00", 720, 1080], ["18:00〜0:00", 1080, 1440]];
-  const zone = [0, 0, 0, 0], TCB = ["0.5h","1h","1.5h","2h","3h","4h","5h","6h","7h","8h","9h","10h~"], tc = Array(12).fill(0);
-  const WK = ["mon","tue","wed","thu","fri","sat","sun","hol"], wkDone = {}, wkGoal = {};
-  WK.forEach(k => { wkDone[k] = 0; wkGoal[k] = 0; });
-  let done = 0, goal = 0, days = 0;
-  for (let d = parse(rs); iso(d) <= re; d.setDate(d.getDate() + 1)) {
-    const k = iso(d); days++;
-    const pk = planKeyOf(k), g = Math.round(state.plan[pk] * 60);
-    goal += g;
-    const r = (state.days[k] && state.days[k].r) || [];
-    const m = r.length * B; done += m;
-    wkDone[pk] += m; wkGoal[pk] += g;
-    r.forEach(x => { for (let z = 0; z < 4; z++) if (x >= ZONES[z][1] && x < ZONES[z][2]) zone[z] += B; });
-    if (m >= 30) tc[m < 60 ? 0 : m < 90 ? 1 : m < 120 ? 2 : m < 600 ? Math.floor(m / 60) + 1 : 11]++;
-  }
-  $("sChants").textContent = Math.round(done / 60 * CFG.perHour).toLocaleString("ja-JP");
-  $("sDone").textContent = hS(done); $("sGoal").textContent = hS(goal); $("sDays").textContent = days;
-  $("sPct").textContent = goal ? Math.round(done / goal * 100) + "%" : "–";
-  $("sFill").style.width = (goal ? Math.min(100, done / goal * 100) : 0) + "%";
+  const zone = [0, 0, 0, 0];
+  let chants = 0, doneMin = 0, goalMin = 0;
+  dates.forEach(date => {
+    const m = minOf(date); doneMin += m; if (date <= today) chants += countOf(m);
+    goalMin += Math.round(planFor(date)[wkKey(date)] * 60);
+    ((state.days[date] && state.days[date].r) || []).forEach(x => { for (let z = 0; z < 4; z++) if (x >= ZONES[z][1] && x < ZONES[z][2]) zone[z] += B; });
+  });
+  // 期間の target を日数で按分して、範囲内の日数分だけ合計
+  let target = 0, prog = 0, listHtml = "";
+  state.periods.forEach((p, i) => {
+    const a = p.start > rs ? p.start : rs, b = p.end < re ? p.end : re;
+    if (a > b) return;
+    const per = p.target / (dayDiff(p.start, p.end) + 1);
+    target += per * (dayDiff(a, b) + 1);
+    const pe = b < today ? b : today;
+    if (pe >= a) prog += per * (dayDiff(a, pe) + 1);
+    let min = 0, ch = 0;
+    for (let d = parse(a); iso(d) <= b; d.setDate(d.getDate()+1)) { const m = minOf(iso(d)); min += m; if (iso(d) <= today) ch += countOf(m); }
+    listHtml += `<div class="yitem"><span class="l1 num">${t("pno", { n: i + 1 })}　${ymdS(p.start)}〜${ymdS(p.end)}</span>` +
+      `<span class="l2 num">${t("inRange")}${ymdS(a)}〜${ymdS(b)}　<b>${hS(min)}</b>　<b>${fmt(ch)}</b> chants</span></div>`;
+  });
+  const days = dates.length;
+  $("sList").innerHTML = listHtml || `<div class="ynone">${t("pnone")}</div>`;
+  $("sCurrent").textContent = fmt(chants);
+  $("sPct").textContent = target > 0 ? Math.round(chants / target * 100) + "%" : "–";
+  $("sDays").textContent = days;
+  $("sTarget").textContent = fmt(target);
+  $("sProg").textContent = fmt(prog);
+  $("sDaily").textContent = fmt(days ? target / days : 0);
+  $("sHours").textContent = hS(doneMin); $("sGoalH").textContent = hS(goalMin);
+  setTrack("sTrack", target > 0 ? chants / target * 100 : 0);
+  $("sTfill").style.width = (target > 0 ? Math.min(100, prog / target * 100) : 0) + "%";
+  $("sScaleMax").textContent = fmt(target);
   $("sZones").innerHTML = ZONES.map(z => `<span>${z[0]}</span>`).join("") + zone.map(m => `<b class="${m ? "" : "z"}">${hS(m)}</b>`).join("");
-  let h = "";
-  [[0,5],[6,11]].forEach(([a,b]) => {
-    for (let k = a; k <= b; k++) h += `<span>${TCB[k]}</span>`;
-    for (let k = a; k <= b; k++) h += `<b class="${tc[k] ? "" : "z"}">${tc[k]}</b>`;
-  });
-  $("sTcount").innerHTML = h;
-  // 曜日別の実施時間（下段は同じ曜日の目標時間の合計）
-  const WKL = ["月","火","水","木","金","土","日","祝"], WKC = ["","","","","","sa","su","su"];
-  // 曜日名／曜日別の目標時間（今の Target time）／実施時間（太字）／合計目標時間（灰色）
-  // 1,000時間を超える長い集計のときは、月〜木／金〜祝の2段に分けて表示
-  const two = WK.some(k => wkDone[k] >= 60000 || wkGoal[k] >= 60000);
-  const hW = m => { const x = m / 60; return (x >= 100 ? Math.round(x) : Math.round(x * 10) / 10) + "h"; };
-  let wh = "";
-  (two ? [[0,3],[4,7]] : [[0,7]]).forEach(([a,b]) => {
-    for (let i = a; i <= b; i++) wh += `<span class="${WKC[i]}">${WKL[i]}</span>`;
-    for (let i = a; i <= b; i++) wh += `<em>${String(state.plan[WK[i]]).replace(/\.0$/,"")}h</em>`;
-    for (let i = a; i <= b; i++) wh += `<b class="${wkDone[WK[i]] ? "" : "z"}">${hW(wkDone[WK[i]])}</b>`;
-    for (let i = a; i <= b; i++) wh += `<small>${hW(wkGoal[WK[i]])}</small>`;
-  });
-  $("sWeek").style.gridTemplateColumns = `repeat(${two ? 4 : 8},minmax(0,1fr))`;
-  $("sWeek").innerHTML = wh;
+  $("sWk").innerHTML = wkGridHtml(dates, planFor, false);
+  $("sTc").innerHTML = tcGridHtml(dates);
 }
-// ---- 日々／集計の切り替え ----
+
+// =====================================================================
+// タブの切り替え
+// =====================================================================
+let view = "D";
 function showView(v){
-  document.getElementById("viewD").hidden = v !== "D";
-  document.getElementById("viewS").hidden = v !== "S";
-  document.getElementById("tabD").classList.toggle("on", v === "D");
-  document.getElementById("tabS").classList.toggle("on", v === "S");
-  window.scrollTo({ top: 0 });
-  if (v === "S") renderSummary();
+  view = v;
+  ["D","P","S"].forEach(x => {
+    document.getElementById("view" + x).hidden = x !== v;
+    document.getElementById("tab" + x).classList.toggle("on", x === v);
+  });
+  if (v === "D") { render(); window.scrollTo({ top: 0 }); }
+  if (v === "P") { syncInputs(); buildRows(); refresh(); window.scrollTo({ top: 0 }); }
+  if (v === "S") { renderSummary(); window.scrollTo({ top: 0 }); }
 }
-document.getElementById("tabD").addEventListener("click", () => showView("D"));
-document.getElementById("tabS").addEventListener("click", () => showView("S"));
+["D","P","S"].forEach(x => document.getElementById("tab" + x).addEventListener("click", () => showView(x)));
 
-function jumpNow(){
-  cur = todayISO(); render();
-  const el = document.querySelector(".slot.now") || document.querySelector(".slot");
-  const top = el.getBoundingClientRect().top + window.scrollY - document.querySelector(".head").offsetHeight - 60;
-  window.scrollTo({ top: Math.max(0, top) });
-}
-document.getElementById("todayBtn").addEventListener("click", jumpNow);
-setInterval(render, 60000);
-
-// ---- バックアップ／復元 ----
-document.getElementById("exportBtn").addEventListener("click", async () => {
-  const name = "chant_time_backup_" + todayISO() + ".json";
-  const file = new File([JSON.stringify(state)], name, {type:"application/json"});
-  if (navigator.canShare && navigator.canShare({files:[file]})) {
-    try { await navigator.share({files:[file], title:name}); return; } catch(e) { if (e.name === "AbortError") return; }
-  }
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-});
+// ---- バックアップ／復元（このアプリ・chant time・chant counter のバックアップを読み込める）----
+document.querySelectorAll(".bkBtn").forEach(b => b.addEventListener("click", doBackup));
 const fileIn = document.getElementById("importFile");
-document.getElementById("importBtn").addEventListener("click", () => fileIn.click());
+document.querySelectorAll(".rsBtn").forEach(b => b.addEventListener("click", () => fileIn.click()));
 fileIn.addEventListener("change", async () => {
   const f = fileIn.files[0]; if (!f) return;
   try {
     const s = JSON.parse(await f.text());
-    if (!s || typeof s.days !== "object") throw new Error();
-    if (!confirm("バックアップの内容で、今の記録と設定をすべて置き換えます。バックアップを取った日より後に入力した記録は消えます。必要な場合は「キャンセル」を押して、先に今の状態をバックアップしてください。復元してよろしいですか？")) return;
-    state = migrate({ days: s.days, plan: {...CFG.plan, ...(s.plan||{})}, unit: s.unit || CFG.unit });
-    save(); unitSel.value = String(state.unit);
-    document.querySelectorAll("select[data-plan]").forEach(x => x.value = String(state.plan[x.dataset.plan]));
-    buildList(); render(); alert("復元しました。");
-  } catch(e) { alert("このファイルは読み込めません。chant time のバックアップ（.json）を選んでください。"); }
+    if (!s || typeof s !== "object") throw new Error();
+    const hasDays = s.days && typeof s.days === "object", hasPeriods = Array.isArray(s.periods) || (s.entries && typeof s.entries === "object");
+    if (hasDays && Array.isArray(s.periods)) {                 // このアプリのバックアップ：すべて置き換え
+      if (!confirm(t("restoreConfirm"))) return;
+      state = normalize(s);
+    } else if (hasDays) {                                       // chant time のバックアップ：Daily の記録と設定
+      if (!confirm(t("restoreDays"))) return;
+      const n = normalize(s); state.days = n.days; state.plan = n.plan; state.unit = n.unit;
+    } else if (hasPeriods) {                                    // chant counter のバックアップ：期間の設定だけ
+      if (!confirm(t("restorePeriods"))) return;
+      const n = normalize(Array.isArray(s.periods) ? s : { periods: [s] });
+      state.periods = n.periods; state.cur = n.cur;
+    } else throw new Error();
+    save(); unitSel.value = String(state.unit); buildList(); showView(view); alert(t("restored"));
+  } catch(e) { alert(t("badFile")); }
   fileIn.value = "";
 });
 
+// ---- はじめの表示 ----
 buildList();
+syncInputs();
 render();
-requestAnimationFrame(jumpNow);
+requestAnimationFrame(() => { if (document.getElementById("gate").hidden) jumpNow(); });
+
+// ---- 日付が変わったとき（開きっぱなし・待機から復帰）に今日を更新 ----
+function checkDay(){
+  const s = iso(new Date());
+  if (s !== today) { if (cur === today) cur = s; today = s; showView(view); }
+  else if (view === "D") render();
+}
+setInterval(checkDay, 60000);
+
 // ---- オフライン対応と自動アップデート ----
 let swReg = null;
 if ("serviceWorker" in navigator && location.protocol === "https:") {
@@ -687,13 +1040,14 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 }
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) return;
-  render();
-  if (swReg) swReg.update().catch(() => {});                                  // 新しい版がないか確認
+  checkDay();
+  if (swReg) swReg.update().catch(() => {});
 });
-document.getElementById("reloadBtn").addEventListener("click", async () => {
+document.querySelectorAll(".rlBtn").forEach(b => b.addEventListener("click", async () => {
   try { if (swReg) await swReg.update(); } catch(e) {}
   location.reload();
-});
+}));
+
 </script>
 </body>
 </html>
