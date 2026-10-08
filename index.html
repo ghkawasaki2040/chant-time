@@ -137,12 +137,13 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .tc span{font-size:12px;color:var(--sub);padding-top:2px}
 .tc b{font-size:16px;font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--rule)}
 .tc b.z{color:var(--sub);font-weight:400}
-.wk{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;row-gap:1px}
+.wk{display:grid;column-gap:3px;align-items:baseline;text-align:center;row-gap:1px}
 .wk span{font-size:12px;color:var(--sub)}
 .wk span.sa{color:var(--sat)} .wk span.su{color:var(--sun)}
-.wk b{font-size:17px;font-weight:700;padding-top:2px;white-space:nowrap}
+.wk em{font-style:normal;font-size:clamp(13px,4vw,16px);color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:4px 0;margin:2px 0 4px}
+.wk b{font-size:clamp(12px,3.9vw,16px);font-weight:700;padding-top:2px;white-space:nowrap;letter-spacing:-.02em}
 .wk b.z{color:var(--sub);font-weight:400}
-.wk small{font-size:12px;color:var(--sub);padding-bottom:6px;white-space:nowrap;border-bottom:1px solid var(--rule)}
+.wk small{font-size:clamp(10px,3.2vw,13px);color:var(--sub);padding:2px 0 6px;white-space:nowrap;letter-spacing:-.02em;border-bottom:1px solid var(--rule)}
 .snote{font-size:12px;color:var(--sub);text-align:center;margin:8px 0 0}
 .foot button{font:inherit;font-size:14px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:18px;padding:6px 14px}
 .foot button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
@@ -261,7 +262,7 @@ body.locked{overflow:hidden}
   </div>
 
   <div class="card sbox">
-    <div class="sh">曜日別の実施時間</div>
+    <div class="sh">曜日別目標/実施時間/曜日合計目標</div>
     <div class="wk num" id="sWeek"></div>
   </div>
   <p class="snote">目標時間は、今の Target time（曜日ごとの目標時間）で計算しています。</p>
@@ -272,7 +273,7 @@ body.locked{overflow:hidden}
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "24"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "25"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -609,12 +610,18 @@ function renderSummary(){
   $("sTcount").innerHTML = h;
   // 曜日別の実施時間（下段は同じ曜日の目標時間の合計）
   const WKL = ["月","火","水","木","金","土","日","祝"], WKC = ["","","","","","sa","su","su"];
+  // 曜日名／曜日別の目標時間（今の Target time）／実施時間（太字）／合計目標時間（灰色）
+  // 1,000時間を超える長い集計のときは、月〜木／金〜祝の2段に分けて表示
+  const two = WK.some(k => wkDone[k] >= 60000 || wkGoal[k] >= 60000);
+  const hW = m => { const x = m / 60; return (x >= 100 ? Math.round(x) : Math.round(x * 10) / 10) + "h"; };
   let wh = "";
-  [[0,3],[4,7]].forEach(([a,b]) => {                                // 月〜木 / 金〜祝 の2段
+  (two ? [[0,3],[4,7]] : [[0,7]]).forEach(([a,b]) => {
     for (let i = a; i <= b; i++) wh += `<span class="${WKC[i]}">${WKL[i]}</span>`;
-    for (let i = a; i <= b; i++) wh += `<b class="${wkDone[WK[i]] ? "" : "z"}">${hS(wkDone[WK[i]])}</b>`;
-    for (let i = a; i <= b; i++) wh += `<small>目標 ${hS(wkGoal[WK[i]])}</small>`;
+    for (let i = a; i <= b; i++) wh += `<em>${String(state.plan[WK[i]]).replace(/\.0$/,"")}h</em>`;
+    for (let i = a; i <= b; i++) wh += `<b class="${wkDone[WK[i]] ? "" : "z"}">${hW(wkDone[WK[i]])}</b>`;
+    for (let i = a; i <= b; i++) wh += `<small>${hW(wkGoal[WK[i]])}</small>`;
   });
+  $("sWeek").style.gridTemplateColumns = `repeat(${two ? 4 : 8},minmax(0,1fr))`;
   $("sWeek").innerHTML = wh;
 }
 // ---- 日々／集計の切り替え ----
