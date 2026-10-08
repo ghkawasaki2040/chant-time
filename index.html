@@ -107,6 +107,37 @@ body{margin:0;background:var(--paper);color:var(--ink);
 .plan label.today select{border-color:var(--done)}
 /* ボタン：iPhone で位置がずれないよう、画面に固定せず時間割のすぐ上に置く */
 .foot{display:flex;gap:8px;justify-content:center;margin:0 0 8px}
+/* 日々／集計の切り替え */
+.tabs{display:flex;gap:6px;margin:8px 0 0}
+.tabs button{flex:1;font:inherit;font-size:15px;font-weight:600;color:var(--sub);background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:7px 0}
+.tabs button.on{color:var(--paper);background:var(--ink);border-color:var(--ink)}
+/* 集計の画面 */
+.sbox{padding:10px 12px;margin-top:8px}
+.yrange{display:flex;align-items:center;justify-content:space-between;gap:4px}
+.yrange span{display:flex;align-items:baseline;gap:2px;white-space:nowrap}
+.yrange small{font-size:12px;color:var(--sub);margin:0 3px 0 1px}
+.yrange select{font:inherit;font-size:16px;font-weight:600;color:var(--ink);background:var(--paper);border:1px solid var(--rule);border-radius:6px;padding:2px 0;text-align:center;text-align-last:center;-webkit-appearance:none;appearance:none}
+.yrange select[id$="Y"]{width:3.4em} .yrange select[id$="M"]{width:2.2em}
+.yrange .sep{color:var(--sub)}
+.yspan{font-size:12px;color:var(--sub);text-align:center;margin-top:6px}
+.shead{display:flex;align-items:baseline;gap:8px}
+.shead b{font-size:24px;font-family:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",serif}
+.shead b small{font-size:14px;font-family:"Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+.shead #sPct{margin-left:auto;font-size:18px;font-weight:700}
+.ssub{display:flex;flex-wrap:wrap;gap:2px 14px;font-size:13px;color:var(--sub);margin-top:2px}
+.ssub b{color:var(--ink)}
+.sbar{height:12px;background:var(--rule);border-radius:4px;overflow:hidden;margin-top:8px}
+.sbar i{display:block;height:100%;width:0;background:var(--done);transition:width .4s}
+.sh{font-size:12px;color:var(--sub);margin-bottom:4px}
+.tz{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;row-gap:2px}
+.tz span{font-size:12px;color:var(--sub)}
+.tz b{font-size:18px;font-weight:700}
+.tz b.z{color:var(--sub);font-weight:400}
+.tc{display:grid;grid-template-columns:repeat(6,1fr);row-gap:2px;text-align:center}
+.tc span{font-size:12px;color:var(--sub);padding-top:2px}
+.tc b{font-size:16px;font-weight:600;padding-bottom:4px;border-bottom:1px solid var(--rule)}
+.tc b.z{color:var(--sub);font-weight:400}
+.snote{font-size:12px;color:var(--sub);text-align:center;margin:8px 0 0}
 .foot button{font:inherit;font-size:14px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:18px;padding:6px 14px}
 .foot button.main{background:var(--ink);color:var(--paper);border-color:var(--ink);font-weight:600}
 /* 初回のパスワード入力画面 */
@@ -151,6 +182,9 @@ body.locked{overflow:hidden}
   <button id="gBtn"></button><p class="gerr" id="gErr" role="alert"></p>
 </div></div>
 <div class="wrap">
+  <div class="tabs" role="tablist"><button id="tabD" class="on" role="tab">日々</button><button id="tabS" role="tab">集計</button></div>
+
+  <div id="viewD">
   <div class="card plan-card">
     <div class="plan-h">Target time</div>
     <div class="plan" id="plan"></div>
@@ -192,13 +226,42 @@ body.locked{overflow:hidden}
     <div class="list" id="list"></div>
   </div>
   <p class="note">target をタップすると 🟡（予定）、real をタップすると 🔵（実施）になり、もう一度タップで ○ に戻ります。記録はこのスマホの中に保存されます。</p>
+  </div>
+
+  <div id="viewS" hidden>
+  <div class="card sbox">
+    <div class="yrange num">
+      <span><select id="sFromY" aria-label="開始の年"></select><small>年</small><select id="sFromM" aria-label="開始の月"></select><small>月</small></span>
+      <span class="sep">〜</span>
+      <span><select id="sToY" aria-label="終了の年"></select><small>年</small><select id="sToM" aria-label="終了の月"></select><small>月</small></span>
+    </div>
+    <div class="yspan num" id="sSpan"></div>
+  </div>
+
+  <div class="card sbox">
+    <div class="shead num"><b><small>現在：</small><span id="sChants">0</span><small> chants</small></b><span id="sPct">–</span></div>
+    <div class="ssub num"><span>実施時間：<b id="sDone">0h</b></span><span>目標時間：<b id="sGoal">0h</b></span><span>日数：<b id="sDays">0</b></span></div>
+    <div class="sbar"><i id="sFill"></i></div>
+  </div>
+
+  <div class="card sbox">
+    <div class="sh">時間帯別の実施時間</div>
+    <div class="tz num" id="sZones"></div>
+  </div>
+
+  <div class="card sbox">
+    <div class="sh">1day.time count</div>
+    <div class="tc num" id="sTcount"></div>
+  </div>
+  <p class="snote">目標時間は、今の Target time（曜日ごとの目標時間）で計算しています。</p>
+  </div>
   <details class="notice"><summary id="nSum"></summary><ul id="nList"></ul></details>
   <details class="notice bk"><summary id="bSum"></summary><ul id="bList"></ul><div class="snap" id="snapBox"></div></details>
 </div>
 
 
 <script>
-const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "22"};
+const CFG = {"perHour": 3400, "codes": [{"hash": "988aa2be", "dom": 1}, {"hash": "a483f9dd", "dom": 2}, {"hash": "b88657f0", "dom": 3}, {"hash": "c49336c7", "dom": 4}, {"hash": "a0953cb2", "dom": 5}, {"hash": "b48d0d69", "dom": 6}, {"hash": "a090bf84", "dom": 7}, {"hash": "b4750883", "dom": 8}, {"hash": "98771b06", "dom": 9}, {"hash": "26b3df86", "dom": 10}, {"hash": "4ab1d99b", "dom": 11}, {"hash": "56afade8", "dom": 12}, {"hash": "32ad36a5", "dom": 13}, {"hash": "56a99dba", "dom": 14}, {"hash": "32a72677", "dom": 15}, {"hash": "46a5075c", "dom": 16}, {"hash": "2aa29cb1", "dom": 17}, {"hash": "56c7b2ce", "dom": 18}, {"hash": "2ac52ef3", "dom": 19}, {"hash": "ea1ce141", "dom": 20}, {"hash": "c61ee72c", "dom": 21}, {"hash": "ba2112df", "dom": 22}, {"hash": "e62396ba", "dom": 23}, {"hash": "da123ab5", "dom": 24}, {"hash": "be15e038", "dom": 25}, {"hash": "da184ae3", "dom": 26}, {"hash": "be1a5d66", "dom": 27}, {"hash": "da304fc9", "dom": 28}, {"hash": "c6326ee4", "dom": 29}, {"hash": "6d857e3c", "dom": 30}, {"hash": "51831391", "dom": 31}], "regEnd": "2027-11-30", "dateMin": "2026-09-01", "dateMax": "2031-12-31", "useEnd": "2031-12-31", "dayStart": 300, "dayEnd": 1440, "units": [10, 15, 20, 30, 60], "unit": 20, "plan": {"mon": 1, "tue": 1, "wed": 1, "thu": 1, "fri": 1, "sat": 1, "sun": 1, "hol": 1}, "hours": [0.5, 1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5, 8.0, 8.5, 9.0, 9.5, 10.0, 11, 12], "version": "23"};
 const KEY = "chant-time-v1";
 
 // ---- 更新前の自動の控え：新しい版で初めて開いたとき、保存データを書き換える前に控えを残す ----
@@ -483,6 +546,65 @@ document.getElementById("copyBtn").addEventListener("click", () => {
 function move(n){ const d = parse(cur); d.setDate(d.getDate()+n); const t = iso(d); if (t < CFG.dateMin || t > CFG.dateMax) return; cur = t; render(); }
 document.getElementById("prev").addEventListener("click", () => move(-1));
 document.getElementById("next").addEventListener("click", () => move(1));
+// ---- 集計（年・月の範囲で集計）----
+const sFromY = document.getElementById("sFromY"), sFromM = document.getElementById("sFromM");
+const sToY = document.getElementById("sToY"), sToM = document.getElementById("sToM");
+(function(){
+  const y0 = Number(CFG.dateMin.slice(0,4)), y1 = Number(CFG.dateMax.slice(0,4));
+  const yo = Array.from({length: y1 - y0 + 1}, (_, i) => `<option value="${y0+i}">${y0+i}</option>`).join("");
+  const mo = Array.from({length: 12}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join("");
+  sFromY.innerHTML = yo; sToY.innerHTML = yo; sFromM.innerHTML = mo; sToM.innerHTML = mo;
+  let r = null; try { r = JSON.parse(localStorage.getItem(KEY + "-sr") || "null"); } catch(e) {}
+  const ty = Math.min(y1, Math.max(y0, new Date().getFullYear()));
+  r = r || { fy: ty, fm: 1, ty: ty, tm: 12 };
+  sFromY.value = r.fy; sFromM.value = r.fm; sToY.value = r.ty; sToM.value = r.tm;
+})();
+[sFromY, sFromM, sToY, sToM].forEach(el => el.addEventListener("change", () => {
+  try { localStorage.setItem(KEY + "-sr", JSON.stringify({ fy: +sFromY.value, fm: +sFromM.value, ty: +sToY.value, tm: +sToM.value })); } catch(e) {}
+  renderSummary();
+}));
+const hS = m => (m / 60).toFixed(1).replace(/\.0$/, "") + "h";
+function renderSummary(){
+  const rs = sFromY.value + "-" + pad(+sFromM.value) + "-01";
+  const re = iso(new Date(+sToY.value, +sToM.value, 0));          // 終了月の月末
+  const $ = id => document.getElementById(id);
+  if (rs > re) { $("sSpan").textContent = "開始の年月は、終了の年月より前にしてください。"; return; }
+  $("sSpan").textContent = rs.replace(/-0?/g, "/") + " 〜 " + re.replace(/-0?/g, "/");
+  const ZONES = [["0:00〜5:00", 0, 300], ["5:00〜12:00", 300, 720], ["12:00〜18:00", 720, 1080], ["18:00〜0:00", 1080, 1440]];
+  const zone = [0, 0, 0, 0], TCB = ["0.5h","1h","1.5h","2h","3h","4h","5h","6h","7h","8h","9h","10h~"], tc = Array(12).fill(0);
+  let done = 0, goal = 0, days = 0;
+  for (let d = parse(rs); iso(d) <= re; d.setDate(d.getDate() + 1)) {
+    const k = iso(d); days++;
+    goal += Math.round(state.plan[planKeyOf(k)] * 60);
+    const r = (state.days[k] && state.days[k].r) || [];
+    const m = r.length * B; done += m;
+    r.forEach(x => { for (let z = 0; z < 4; z++) if (x >= ZONES[z][1] && x < ZONES[z][2]) zone[z] += B; });
+    if (m >= 30) tc[m < 60 ? 0 : m < 90 ? 1 : m < 120 ? 2 : m < 600 ? Math.floor(m / 60) + 1 : 11]++;
+  }
+  $("sChants").textContent = Math.round(done / 60 * CFG.perHour).toLocaleString("ja-JP");
+  $("sDone").textContent = hS(done); $("sGoal").textContent = hS(goal); $("sDays").textContent = days;
+  $("sPct").textContent = goal ? Math.round(done / goal * 100) + "%" : "–";
+  $("sFill").style.width = (goal ? Math.min(100, done / goal * 100) : 0) + "%";
+  $("sZones").innerHTML = ZONES.map(z => `<span>${z[0]}</span>`).join("") + zone.map(m => `<b class="${m ? "" : "z"}">${hS(m)}</b>`).join("");
+  let h = "";
+  [[0,5],[6,11]].forEach(([a,b]) => {
+    for (let k = a; k <= b; k++) h += `<span>${TCB[k]}</span>`;
+    for (let k = a; k <= b; k++) h += `<b class="${tc[k] ? "" : "z"}">${tc[k]}</b>`;
+  });
+  $("sTcount").innerHTML = h;
+}
+// ---- 日々／集計の切り替え ----
+function showView(v){
+  document.getElementById("viewD").hidden = v !== "D";
+  document.getElementById("viewS").hidden = v !== "S";
+  document.getElementById("tabD").classList.toggle("on", v === "D");
+  document.getElementById("tabS").classList.toggle("on", v === "S");
+  window.scrollTo({ top: 0 });
+  if (v === "S") renderSummary();
+}
+document.getElementById("tabD").addEventListener("click", () => showView("D"));
+document.getElementById("tabS").addEventListener("click", () => showView("S"));
+
 function jumpNow(){
   cur = todayISO(); render();
   const el = document.querySelector(".slot.now") || document.querySelector(".slot");
